@@ -3,29 +3,29 @@ from reppy.robots import Robots
 
 import link_utils
 
+
 class RobotParser:
-    def __init__(self, url, request_kwargs=None):
+    def __init__(
+            self,
+            caching_capacity=100,
+            cache_kwargs=None,
+            request_kwargs=None):
+
         if not request_kwargs:
             request_kwargs = {}
-        self.robots_url = self.get_robots_url(url)
-        self.reppy = self.fetch_robots(self.robots_url, **request_kwargs)
+        if not cache_kwargs:
+            cache_kwargs = {}
 
-    @classmethod
-    def get_robots_url(cls, url):
-        base_url = link_utils.get_base_url(url)
-        robots_url = urllib.parse.urljoin(base_url, "robots.txt")
-        print(robots_url)
-        return robots_url
+        self._caching = caching
+        self.request_kwargs = request_kwargs
+        self.cache_kwargs = cache_kwargs
 
-    @classmethod
-    def fetch_robots(cls, robots_url, request_kwargs=None):
-        if not request_kwargs:
-            request_kwargs = {}
-        robots = Robots.fetch(robots_url, **request_kwargs)
-        return robots
+        self.reppy = RobotsCache(
+            capacity=caching_capacity, **cache_kwargs, **request_kwargs)
 
-    def crawl_delay(self, user_agent):
-        return self.reppy.agent(user_agent).delay
+    def crawl_delay(self, url, user_agent=""):
+        reppy = self.reppy.get(url)
+        return reppy.agent(user_agent).delay
 
     def allowed_by_robots(self, url, user_agent=""):
         return self.reppy.allowed(url, user_agent)

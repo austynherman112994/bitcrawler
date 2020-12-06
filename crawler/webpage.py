@@ -5,43 +5,27 @@ import validators
 
 import link_utils
 import parsing
-
-
-def _resolve_relative_links(original_url, links):
-    links = [
-        urllib.parse.urljoin(original_url, link)
-        if link_utils.is_relative(link) else link for link in links]
-    return links
-
-def _remove_cross_site_links(original_url, links):
-    same_site_links = []
-    for link in links:
-        if link_utils.is_same_host(link, original_url):
-            same_site_links.append(link)
-    return same_site_links
+import robots
 
 class Webpage:
-    def __init__(self, url, allowed_by_robots):
+    def __init__(self, url):
         self.url = url
         self.response = None
         self.soup = None
         self.links = None
+        self.same_site_links = None
         self.content_type = None
         self.charset = None
-        self.allowed_by_robots = allowed_by_robots
+        self.allowed_by_robots = None
 
     def __str__(self):
         return str({
             'url': self.url,
-            'links': self.links
+            'content_type': self.content_type
         })
 
     @classmethod
-    def get_robots(cls, url):
-        pass
-
-    @classmethod
-    def fetch(cls, url, requests_kwargs=None):
+    def fetch(cls, url, **requests_kwargs):
         if not requests_kwargs:
             requests_kwargs = {}
         try:
@@ -63,37 +47,67 @@ class Webpage:
         return None, None
 
     @classmethod
-    def _get_links(cls, url, soup):
+    def _resolve_relative_links(cls, original_url, links):
+        links = [
+            urllib.parse.urljoin(original_url, link)
+            if link_utils.is_relative(link) else link for link in links]
+        return links
+
+    @classmethod
+    def _remove_cross_site_links(cls, original_url, links):
+        same_site_links = []
+        for link in links:
+            if link_utils.is_same_host(link, original_url):
+                same_site_links.append(link)
+        return same_site_links
+
+
+    @classmethod
+    def get_same_site_links(cls, original_url, links):
+        return cls._remove_cross_site_links(original_url, links)
+
+    @classmethod
+    def get_links(cls, url, soup):
         discovered_links = soup.get_links()
 
         # Append base url to relative links
         base_url = link_utils.get_base_url(url)
-        resolved_links = _resolve_relative_links(
+        resolved_links = cls._resolve_relative_links(
             base_url, discovered_links)
 
         # Remove invalid links
         valid_urls = [url for url in resolved_links if validators.url(url)]
         return valid_urls
 
-    @classmethod
-    def get_links(cls, url, soup, cross_site):
-        links = cls._get_links(url, soup)
+    def crawl_page(
+            self,
+            user_agent,
+            request_kwargs=None,
+            respect_robots=True,
+            reppy=None,
+            reppy_cache_kwargs=None,
+            reppy_robots_kwargs=None):
 
-        if cross_site:
-            return links
-        else:
-            return _remove_cross_site_links(url, links)
+        if respect_robots:
+            if not reppy:
+                reppy = RobotParser(
+                    cache_kwargs=reppy_cache_kwargs,
+                    request_kwargs=reppy_robots_kwargs)
+            self.allowed_by_robots = reppy.allowed_by_robots(self.url)
 
+        # Only False should prevent crawling (None should allow.)
+        if self.allowed_by_robots != False:
+            self.response = self.fetch(self.url, **requests_kwargs)
+            if self.response and self.response.ok:
+                self.content_type, self.charset = (
+                    self.parse_content_type(
+                        self.response.headers.get('content-type')))
 
-    def crawl_page(self, cross_site=False):
-        self.response = self.fetch(self.url)
-        if self.response and self.response.ok:
-            self.content_type, self.charset = (
-                self.parse_content_type(
-                    self.response.headers.get('content-type')))
-            self.soup = parsing.HtmlParser(self.response.text)
-            self.links = self.get_links(self.url, self.soup, cross_site)
+                if self.content_type == 'text/html'
+                    self.soup = parsing.HtmlParser(self.response.text)
+                    self.links = self.get_links(self.url, self.soup, cross_site)
+                    self.same_site_links = (
+                        self.get_same_site_links(self.url, self.links))
         return self
 
-# print(validators.url("http://python.org"))
-# print(Webpage("http://python.org", True).crawl_page())
+print(Webpage("http://python.org", True).crawl_page())

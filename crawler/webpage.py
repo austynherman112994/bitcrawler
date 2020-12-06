@@ -33,7 +33,6 @@ class Webpage:
         except Exception as e:
             # TODO logging
             raise e
-            return None
 
     @classmethod
     def parse_content_type(cls, content_type_header):
@@ -88,6 +87,8 @@ class Webpage:
             reppy_cache_kwargs=None,
             reppy_robots_kwargs=None):
 
+        if not request_kwargs:
+            request_kwargs = {}
         if respect_robots:
             if not reppy:
                 reppy = RobotParser(
@@ -97,17 +98,15 @@ class Webpage:
 
         # Only False should prevent crawling (None should allow.)
         if self.allowed_by_robots != False:
-            self.response = self.fetch(self.url, **requests_kwargs)
+            self.response = self.fetch(self.url, **request_kwargs)
             if self.response and self.response.ok:
                 self.content_type, self.charset = (
                     self.parse_content_type(
                         self.response.headers.get('content-type')))
 
-                if self.content_type == 'text/html'
+                if self.content_type == 'text/html':
                     self.soup = parsing.HtmlParser(self.response.text)
-                    self.links = self.get_links(self.url, self.soup, cross_site)
+                    self.links = self.get_links(self.url, self.soup)
                     self.same_site_links = (
                         self.get_same_site_links(self.url, self.links))
         return self
-
-print(Webpage("http://python.org", True).crawl_page())

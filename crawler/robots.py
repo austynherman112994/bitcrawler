@@ -1,5 +1,6 @@
 import urllib.parse
 from reppy.robots import Robots
+from reppy.cache import RobotsCache
 
 import link_utils
 
@@ -16,7 +17,6 @@ class RobotParser:
         if not cache_kwargs:
             cache_kwargs = {}
 
-        self._caching = caching
         self.request_kwargs = request_kwargs
         self.cache_kwargs = cache_kwargs
 

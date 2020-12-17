@@ -31,12 +31,18 @@ class Crawler:
                 status_code = page.response.status_code
             else:
                 status_code = None
+            if page.soup:
+                title = page.soup.title
+            else:
+                title = None
 
             results.append({
                 'url': page.url,
+                'title': title,
                 'content_type': page.content_type,
                 'status_code': status_code,
-                'can_crawl': page.allowed_by_robots
+                'can_crawl': page.allowed_by_robots,
+                # 'links': page.links
             })
         return results
 
@@ -52,28 +58,26 @@ class Crawler:
             if depth >= self.crawl_depth:
                 return
             for url in urls:
-                print(url)
-                if url in crawled_urls.keys():
-                    return
-                page = webpage.Webpage(url).crawl_page(
-                    respect_robots=self.respect_robots,
-                    user_agent=self.user_agent,
-                    request_kwargs=self.request_kwargs,
-                    reppy=reppy
-                )
-                crawled_urls[url] = page
-                if self.cross_site:
-                    links = page.links
-                else:
-                    links = page.same_site_links
-                if links:
-                    _crawl(links, depth=depth+1)
+                if url not in crawled_urls.keys():
+                    page = webpage.Webpage(url).crawl_page(
+                        respect_robots=self.respect_robots,
+                        user_agent=self.user_agent,
+                        request_kwargs=self.request_kwargs,
+                        reppy=reppy
+                    )
+                    crawled_urls[url] = page
+                    if self.cross_site:
+                        links = page.links
+                    else:
+                        links = page.same_site_links
+                    if links:
+                        _crawl(links, depth=depth+1)
 
         _crawl([url])
         return self.parse(crawled_urls.values())
 
 
 
-for page in Crawler(respect_robots=False, cross_site=True, crawl_depth=2).crawl('https://yahoo.com'):
+for page in Crawler(cross_site=True, crawl_depth=2).crawl('https://www.yahoo.com'):
     print(page)
     print('\n')

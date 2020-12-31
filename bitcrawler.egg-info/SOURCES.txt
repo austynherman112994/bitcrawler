@@ -1,0 +1,12 @@
+README.md
+setup.py
+bitcrawler/__init__.py
+bitcrawler/crawler.py
+bitcrawler/link_utils.py
+bitcrawler/parsing.py
+bitcrawler/robots.py
+bitcrawler/webpage.py
+bitcrawler.egg-info/PKG-INFO
+bitcrawler.egg-info/SOURCES.txt
+bitcrawler.egg-info/dependency_links.txt
+bitcrawler.egg-info/top_level.txt

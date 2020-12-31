@@ -105,7 +105,7 @@ class Webpage:
                         self.response.headers.get('content-type')))
 
                 if self.content_type == 'text/html':
-                    self.soup = parsing.HtmlParser(self.response.text)
+                    self.soup = parsing.HtmlParser(self.response.text, "html.parser")
                     self.links = self.get_links(self.url, self.soup)
                     self.same_site_links = (
                         self.get_same_site_links(self.url, self.links))

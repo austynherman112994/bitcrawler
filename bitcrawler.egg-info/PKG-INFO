@@ -1,0 +1,15 @@
+Metadata-Version: 2.1
+Name: bitcrawler
+Version: 0.0.1
+Summary: Crawling the web made easy.
+Home-page: https://github.com/austynherman112994/bitcrawler
+Author: Austyn Herman
+Author-email: austynherman112994@gmail.com
+License: UNKNOWN
+Description: # bitcrawler
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: Apache License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown

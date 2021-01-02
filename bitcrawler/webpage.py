@@ -56,10 +56,9 @@ class Webpage:
     def _remove_cross_site_links(cls, original_url, links):
         same_site_links = []
         for link in links:
-            if link_utils.is_same_host(link, original_url):
+            if link_utils.is_same_domain(link, original_url):
                 same_site_links.append(link)
         return same_site_links
-
 
     @classmethod
     def get_same_site_links(cls, original_url, links):
@@ -98,7 +97,7 @@ class Webpage:
 
         # Only False should prevent crawling (None should allow.)
         if self.allowed_by_robots != False:
-            self.response = self.fetch(self.url, **request_kwargs)
+            self.response = self.fetch(self.url, **requests_kwargs)
             if self.response and self.response.ok:
                 self.content_type, self.charset = (
                     self.parse_content_type(

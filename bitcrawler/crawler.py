@@ -9,9 +9,15 @@ import webpage
 
 class Crawler:
     def __init__(
-            self, user_agent="python-requests", crawl_delay=None,
-            crawl_depth=5, cross_site=False, respect_robots=True,
-            request_kwargs=None, reppy_cache_kwargs=None,
+            self, user_agent="python-requests",
+            crawl_delay=None,
+            crawl_depth=5,
+            cross_site=False,
+            respect_robots=True,
+            respect_robots_crawl_delay=False,
+            max_threads=100,
+            request_kwargs=None,
+            reppy_cache_kwargs=None,
             reppy_request_kwargs=None):
         self.user_agent = user_agent
         self.crawl_delay = crawl_delay
@@ -52,7 +58,11 @@ class Crawler:
         reppy = robots.RobotParser(
             cache_kwargs=self.reppy_cache_kwargs,
             request_kwargs=self.reppy_request_kwargs)
+
         crawled_urls = {}
+
+        def _crawl_threaded():
+            pass
 
         def _crawl(urls, depth=0):
             if depth >= self.crawl_depth:

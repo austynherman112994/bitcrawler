@@ -4,7 +4,6 @@ from reppy.cache import RobotsCache
 
 import link_utils
 
-
 class RobotParser:
     def __init__(
             self,

@@ -1,10 +1,10 @@
 import requests
 import urllib.parse
 
-import link_utils
-import parsing
-import robots
-import webpage
+from . import link_utils
+from . import parsing
+from . import robots
+from . import webpage
 
 
 class Crawler:

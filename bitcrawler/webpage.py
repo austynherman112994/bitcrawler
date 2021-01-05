@@ -1,11 +1,12 @@
 import urllib.parse
 import requests
+import logging
 
 import validators
 
-import link_utils
-import parsing
-import robots
+from . import parsing
+from . import robots
+from . import link_utils
 
 class Webpage:
     def __init__(self, url):
@@ -15,8 +16,10 @@ class Webpage:
         self.links = None
         self.same_site_links = None
         self.content_type = None
-        self.charset = None
+        self.content_type_params = None
         self.allowed_by_robots = None
+        self.message = None
+        self.error = None
 
     def __str__(self):
         return str({
@@ -28,18 +31,14 @@ class Webpage:
     def fetch(cls, url, **requests_kwargs):
         if not requests_kwargs:
             requests_kwargs = {}
-        try:
-            return requests.get(url, **requests_kwargs)
-        except Exception as e:
-            # TODO logging
-            raise e
+        return requests.get(url, **requests_kwargs)
 
     @classmethod
-    def parse_content_type(cls, content_type_header):
+    def parse_mime_type(cls, content_type_header):
         if content_type_header:
             split_content_type = content_type_header.split(";")
             if len(split_content_type) >= 2:
-                return split_content_type[:2]
+                return split_content_type[0], split_content_type[1].strip()
             elif len(split_content_type) == 1:
                 content_type = split_content_type[0]
                 return content_type, None
@@ -95,17 +94,29 @@ class Webpage:
                     request_kwargs=reppy_robots_kwargs)
             self.allowed_by_robots = reppy.allowed_by_robots(self.url)
 
+        if self.allowed_by_robots == False:
+            self.message = f"URL {self.url} is restricted by robots.txt"
         # Only False should prevent crawling (None should allow.)
-        if self.allowed_by_robots != False:
-            self.response = self.fetch(self.url, **requests_kwargs)
-            if self.response and self.response.ok:
-                self.content_type, self.charset = (
-                    self.parse_content_type(
-                        self.response.headers.get('content-type')))
+        else:
+            try:
+                self.response = self.fetch(self.url, **requests_kwargs)
+            except Exception as e:
+                self.message = "An error occurred while attempting to fetch {self.url}: {e}"
+                logging.error(self.message)
+                self.error = e
 
-                if self.content_type == 'text/html':
-                    self.soup = parsing.HtmlParser(self.response.text, "html.parser")
-                    self.links = self.get_links(self.url, self.soup)
-                    self.same_site_links = (
-                        self.get_same_site_links(self.url, self.links))
+            if self.response:
+                if self.response.ok:
+                    # Second param will be charset
+                    self.content_type, self.content_type_params = (
+                        self.parse_mime_type(
+                            self.response.headers.get('content-type')))
+
+                    if self.content_type == 'text/html':
+                        self.soup = parsing.HtmlParser(self.response.text, "html.parser")
+                        self.links = self.get_links(self.url, self.soup)
+                        self.same_site_links = (
+                            self.get_same_site_links(self.url, self.links))
+                else:
+                    self.message = f"URL %s returned a {self.response.status_code} status code."
         return self

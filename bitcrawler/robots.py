@@ -2,7 +2,7 @@ import urllib.parse
 from reppy.robots import Robots
 from reppy.cache import RobotsCache
 
-import link_utils
+from . import link_utils
 
 class RobotParser:
     def __init__(

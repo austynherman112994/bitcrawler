@@ -46,22 +46,16 @@ class Webpage:
 
     @classmethod
     def _resolve_relative_links(cls, original_url, links):
-        links = [
+        links = list(set(
             urllib.parse.urljoin(original_url, link)
-            if link_utils.is_relative(link) else link for link in links]
+            if link_utils.is_relative(link) else link for link in links))
         return links
 
     @classmethod
-    def _remove_cross_site_links(cls, original_url, links):
-        same_site_links = []
-        for link in links:
-            if link_utils.is_same_domain(link, original_url):
-                same_site_links.append(link)
-        return same_site_links
-
-    @classmethod
     def get_same_site_links(cls, original_url, links):
-        return cls._remove_cross_site_links(original_url, links)
+        return list(set(
+                    link for link in links
+                    if link_utils.is_same_domain(link, original_url)))
 
     @classmethod
     def get_links(cls, url, soup):
@@ -73,7 +67,8 @@ class Webpage:
             base_url, discovered_links)
 
         # Remove invalid links
-        valid_urls = [url for url in resolved_links if validators.url(url)]
+        valid_urls = list(set(
+            url for url in resolved_links if validators.url(url)))
         return valid_urls
 
     def crawl_page(

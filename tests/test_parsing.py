@@ -2,7 +2,7 @@ import pytest
 
 from bitcrawler import parsing
 
-def test():
+def test_get_links():
     result_links = [
         "/about",
         "http://python.org",

@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from bitcrawler import parsing
 from bitcrawler import webpage
+from bitcrawler import robots
 
 @patch('requests.get')
 def test_fetch__with_kwargs(requests_get_mock):
@@ -116,55 +117,25 @@ def test_get_links__invalid_url(mock_get_links):
     assert links.sort() == expected_results.sort()
 
 
-
-def test_crawl_page():
-    pass
-
-def test_():
-    pass
-# class Webpage:
-
-#
-#     def crawl_page(
-#             self,
-#             user_agent,
-#             request_kwargs=None,
-#             respect_robots=True,
-#             reppy=None,
-#             reppy_cache_kwargs=None,
-#             reppy_robots_kwargs=None):
-#
-#         if not request_kwargs:
-#             request_kwargs = {}
-#         if respect_robots:
-#             if not reppy:
-#                 reppy = RobotParser(
-#                     cache_kwargs=reppy_cache_kwargs,
-#                     request_kwargs=reppy_robots_kwargs)
-#             self.allowed_by_robots = reppy.allowed_by_robots(self.url)
-#
-#         if self.allowed_by_robots == False:
-#             self.message = f"URL {self.url} is restricted by robots.txt"
-#         # Only False should prevent crawling (None should allow.)
-#         else:
-#             try:
-#                 self.response = self.fetch(self.url, **requests_kwargs)
-#             except Exception as e:
-#                 self.message = "An error occurred while attempting to fetch {self.url}: {e}"
-#                 logging.error(self.message)
-#                 self.error = e
-#
-#             if self.response
-#                 if self.response.ok:
-#                     self.content_type, self.charset = (
-#                         self.parse_content_type(
-#                             self.response.headers.get('content-type')))
-#
-#                     if self.content_type == 'text/html':
-#                         self.soup = parsing.HtmlParser(self.response.text, "html.parser")
-#                         self.links = self.get_links(self.url, self.soup)
-#                         self.same_site_links = (
-#                             self.get_same_site_links(self.url, self.links))
-#                 else:
-#                     self.message = f"URL %s returned a {self.response.status_code} status code."
-#         return self
+@patch.object(
+    robots.RobotParser,
+    'allowed_by_robots',
+    return_value=False
+)
+@patch.object(
+    robots.RobotParser,
+    '__init__',
+    return_value=None)
+def test_is_allowed_by_robots__no_reppy(mock_reppy, mock_allowed):
+    url = 'http://python.org'
+    cache_test = {'cache_test': 'test1'}
+    request_test = {'request_test': 'test2'}
+    allowed = webpage.Webpage.is_allowed_by_robots(
+        url,
+        reppy_cache_kwargs=cache_test,
+        reppy_request_kwargs=request_test
+    )
+    assert allowed == False
+    mock_reppy.assert_called_with(
+        cache_kwargs=cache_test,
+        request_kwargs=request_test)

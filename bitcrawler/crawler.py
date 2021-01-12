@@ -1,17 +1,21 @@
 import requests
 import urllib.parse
 
-from . import link_utils
-from . import parsing
-from . import robots
-from . import webpage
+import link_utils
+import parsing
+import robots
+import webpage
 
 
 class Crawler:
+    """TODO: Docstring
+    """
     def __init__(
             self, user_agent="python-requests",
             crawl_delay=None,
             crawl_depth=5,
+            allowed_domains=None,
+            disallowed_domains=None,
             cross_site=False,
             respect_robots=True,
             respect_robots_crawl_delay=False,
@@ -19,9 +23,12 @@ class Crawler:
             request_kwargs=None,
             reppy_cache_kwargs=None,
             reppy_request_kwargs=None):
+
         self.user_agent = user_agent
         self.crawl_delay = crawl_delay
         self.crawl_depth = crawl_depth
+        self.allowed_domains = allowed_domains
+        self.disallowed_domains = disallowed_domains
         self.cross_site = cross_site
         self.respect_robots = respect_robots
         self.request_kwargs = request_kwargs
@@ -31,38 +38,21 @@ class Crawler:
 
     def parse(self, webpages):
         ### OVERRIDE
-        results = []
-        for page in webpages:
-            if page.response:
-                status_code = page.response.status_code
-            else:
-                status_code = None
-            if page.soup:
-                title = page.soup.title
-            else:
-                title = None
-
-            results.append({
-                'url': page.url,
-                'title': title,
-                'content_type': page.content_type,
-                'status_code': status_code,
-                'can_crawl': page.allowed_by_robots,
-                # 'links': page.links
-            })
-        return results
+        return list(webpages)
 
 
 
     def crawl(self, url):
+        """TODO: Docstring
+
+        TODO - ADD multiprocessing.
+        TODO - ADD whitelist/blacklist domain logic.
+        """
         reppy = robots.RobotParser(
             cache_kwargs=self.reppy_cache_kwargs,
             request_kwargs=self.reppy_request_kwargs)
 
         crawled_urls = {}
-
-        def _crawl_threaded():
-            pass
 
         def _crawl(urls, depth=0):
             if depth >= self.crawl_depth:
@@ -88,6 +78,7 @@ class Crawler:
 
 
 
-for page in Crawler(cross_site=True, crawl_depth=2).crawl('https://www.yahoo.com'):
-    print(page)
-    print('\n')
+crawled_pages = Crawler(cross_site=True, crawl_depth=2, reppy_request_kwargs={"allow_redirects": False}).crawl('https://www.yahoo.com')
+for page in crawled_pages:
+    if page.soup:
+        print(page.url, "- ", page.soup.title)

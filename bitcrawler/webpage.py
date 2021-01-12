@@ -34,6 +34,8 @@ class Webpage:
     @classmethod
     def fetch(cls, url, **requests_kwargs):
         """TODO: Docstring
+
+        Use requests sessions for more  functionality
         """
         if not requests_kwargs:
             requests_kwargs = {}
@@ -94,10 +96,6 @@ class Webpage:
             reppy_request_kwargs=None):
         """TODO: Docstring
         """
-        if not reppy_request_kwargs:
-            reppy_request_kwargs = {}
-        if not reppy_cache_kwargs:
-            reppy_cache_kwargs = {}
 
         if not reppy:
             reppy = robots.RobotParser(

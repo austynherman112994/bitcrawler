@@ -117,25 +117,26 @@ def test_get_links__invalid_url(mock_get_links):
     assert links.sort() == expected_results.sort()
 
 
-@patch.object(
-    robots.RobotParser,
-    'allowed_by_robots',
-    return_value=False
-)
-@patch.object(
-    robots.RobotParser,
-    '__init__',
-    return_value=None)
-def test_is_allowed_by_robots__no_reppy(mock_reppy, mock_allowed):
-    url = 'http://python.org'
-    cache_test = {'cache_test': 'test1'}
-    request_test = {'request_test': 'test2'}
-    allowed = webpage.Webpage.is_allowed_by_robots(
-        url,
-        reppy_cache_kwargs=cache_test,
-        reppy_request_kwargs=request_test
-    )
-    assert allowed == False
-    mock_reppy.assert_called_with(
-        cache_kwargs=cache_test,
-        request_kwargs=request_test)
+
+# @patch.object(
+#     robots.RobotParser,
+#     'allowed_by_robots',
+#     return_value=False
+# )
+# @patch.object(
+#     robots.RobotParser,
+#     '__init__',
+#     return_value=None)
+# def test_is_allowed_by_robots__no_reppy(mock_reppy, mock_allowed):
+#     url = 'http://python.org'
+#     cache_test = {'cache_test': 'test1'}
+#     request_test = {'request_test': 'test2'}
+#     allowed = webpage.Webpage.is_allowed_by_robots(
+#         url,
+#         reppy_cache_kwargs=cache_test,
+#         reppy_request_kwargs=request_test
+#     )
+#     mock_reppy.assert_called_with(
+#             cache_kwargs=cache_test,
+#             request_kwargs=request_test)
+#     assert allowed == False

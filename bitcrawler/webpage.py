@@ -1,4 +1,4 @@
-"""TODO: Docstring
+"""
 """
 import urllib.parse
 import requests
@@ -19,8 +19,6 @@ class Webpage:
         self.soup = None
         self.links = None
         self.same_site_links = None
-        self.content_type = None
-        self.content_type_params = None
         self.allowed_by_robots = None
         self.message = None
         self.error = None
@@ -135,7 +133,7 @@ class Webpage:
             if self.response:
                 if self.response.ok:
                     # Second param will be charset for text/html docs
-                    self.content_type, self.content_type_params = (
+                    content_type, content_type_params = (
                         self.parse_mime_type(
                             self.response.headers.get('content-type')))
 

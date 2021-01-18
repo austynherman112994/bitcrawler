@@ -1,3 +1,5 @@
+"""
+"""
 import requests
 import urllib.parse
 
@@ -5,10 +7,17 @@ import link_utils
 import parsing
 import robots
 import webpage
+import logging
 
 
 class Crawler:
     """TODO: Docstring
+
+    TODOS:
+        Add allowed and disallowed domains logic.
+        Allowed domains should override cross_site for the povided domains.
+
+        Disallowed domains should only be applied with cross site true.
     """
     def __init__(
             self, user_agent="python-requests",
@@ -19,6 +28,7 @@ class Crawler:
             cross_site=False,
             respect_robots=True,
             respect_robots_crawl_delay=False,
+            multithreading=False,
             max_threads=100,
             request_kwargs=None,
             reppy_cache_kwargs=None,
@@ -34,6 +44,11 @@ class Crawler:
         self.request_kwargs = request_kwargs
         self.reppy_cache_kwargs = reppy_cache_kwargs
         self.reppy_request_kwargs = reppy_request_kwargs
+        if multithreading:
+            self.max_threads = max_threads
+        else:
+            log.warning("multithreading is set to False. Defaulting max_threads to 1.")
+            self.max_threads = 1
 
 
     def parse(self, webpages):
@@ -51,27 +66,28 @@ class Crawler:
         reppy = robots.RobotParser(
             cache_kwargs=self.reppy_cache_kwargs,
             request_kwargs=self.reppy_request_kwargs)
-
         crawled_urls = {}
 
         def _crawl(urls, depth=0):
             if depth >= self.crawl_depth:
                 return
-            for url in urls:
-                if url not in crawled_urls.keys():
-                    page = webpage.Webpage(url).crawl_page(
+            webpages = [webpage.Webpage(url) if url not in crawled_urls.keys() for url in urls]
+            with cf.ThreadPoolExecutor(max_workers=self.max_threads) as e:
+                futures = [
+                    e.submit(
+                        page.crawl_page,
                         respect_robots=self.respect_robots,
                         user_agent=self.user_agent,
                         request_kwargs=self.request_kwargs,
-                        reppy=reppy
-                    )
-                    crawled_urls[url] = page
-                    if self.cross_site:
-                        links = page.links
-                    else:
-                        links = page.same_site_links
-                    if links:
-                        _crawl(links, depth=depth+1)
+                        reppy=reppy) for page in webpages]
+
+                crawled_urls[url] = page
+                if self.cross_site:
+                    links = page.links
+                else:
+                    links = page.same_site_links
+                if links:
+                    _crawl(links, depth=depth+1)
 
         _crawl([url])
         return self.parse(crawled_urls.values())

@@ -4,11 +4,7 @@ Extends the reppy library (https://github.com/seomoz/reppy)
 for robots.txt fetching and parsing. The utilities below use
 the RobotsCache as it is the best suited for a crawling use case.
 """
-import urllib.parse
-from reppy.robots import Robots
 from reppy.cache import RobotsCache
-
-import link_utils
 
 
 class RobotParser:
@@ -63,7 +59,10 @@ class RobotParser:
 
         """
         reppy = self.reppy.get(url)
-        return reppy.agent(user_agent).delay
+        delay = reppy.agent(user_agent).delay
+        if not delay:
+            delay = 0
+        return delay
 
 
     def allowed_by_robots(self, url, user_agent="python-requests"):

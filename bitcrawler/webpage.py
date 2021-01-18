@@ -1,14 +1,17 @@
-"""
+"""This module provides functionality for fetching a webpage and stores
+relevant ojects from page retrieval.
 """
 import urllib.parse
-import requests
 import logging
+import requests
 
 import validators
 
 import parsing
 import robots
 import link_utils
+
+log = logging.getLogger('bitcrawler').addHandler(logging.NullHandler())
 
 class Webpage:
     """TODO: Docstring
@@ -26,14 +29,13 @@ class Webpage:
     def __str__(self):
         return str({
             'url': self.url,
-            'content_type': self.content_type
         })
 
     @classmethod
     def fetch(cls, url, **requests_kwargs):
         """TODO: Docstring
 
-        Use requests sessions for more  functionality
+        Use requests sessions for more  functionality.
         """
         if not requests_kwargs:
             requests_kwargs = {}
@@ -116,28 +118,30 @@ class Webpage:
 
         if respect_robots:
             self.allowed_by_robots = self.is_allowed_by_robots(
-                self.url, reppy=reppy, reppy_cache_kwargs=None,
-                reppy_request_kwargs=None)
+                self.url, reppy=reppy, reppy_cache_kwargs=reppy_cache_kwargs,
+                reppy_request_kwargs=reppy_request_kwargs)
 
         # Only False should prevent crawling (None should allow.)
-        if self.allowed_by_robots == False:
+        if self.allowed_by_robots is False:
             self.message = f"URL {self.url} is restricted by robots.txt"
         else:
             try:
                 self.response = self.fetch(self.url, **request_kwargs)
-            except Exception as e:
-                self.message = f"An error occurred while attempting to fetch {self.url}: {e}"
+            except Exception as err:
+                self.message = (
+                    "An error occurred while attempting to fetch "
+                    f"{self.url}: {err}")
                 logging.error(self.message)
-                self.error = e
+                self.error = err
 
             if self.response:
                 if self.response.ok:
                     # Second param will be charset for text/html docs
-                    content_type, content_type_params = (
+                    content_type, _ = (
                         self.parse_mime_type(
                             self.response.headers.get('content-type')))
 
-                    if self.content_type == 'text/html':
+                    if content_type == 'text/html':
                         self.soup = parsing.HtmlParser(self.response.text, "html.parser")
                         self.links = self.get_links(self.url, self.soup)
                         self.same_site_links = (

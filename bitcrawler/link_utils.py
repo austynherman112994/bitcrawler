@@ -63,8 +63,8 @@ def get_domain(url):
         "python.org"
 
     """
-    url_netloc = urllib.parse.urlparse(url1).netloc
-    url_domain = ".".join(url1_netloc.split(".")[-2:]).split(":")[0]
+    url_netloc = urllib.parse.urlparse(url).netloc
+    url_domain = ".".join(url_netloc.split(".")[-2:]).split(":")[0]
     return url_domain
 
 

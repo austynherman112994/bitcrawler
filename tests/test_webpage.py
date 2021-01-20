@@ -108,7 +108,7 @@ def test_get_same_site_links():
         "http://python.org/123/!@#$%^&*()"
     ]
 )
-def test_get_links__invalid_url(mock_get_links):
+def test_get_html_links__invalid_url(mock_get_links):
     expected_results = [
         "http://python.org/about",
         "http://python.org/123"

@@ -60,10 +60,12 @@ class Crawler:
             self.crawl_delay = crawl_delay
             self.respect_robots_crawl_delay = respect_robots_crawl_delay
 
+
     def parse(self, webpages):
         """TODO"""
         ### OVERRIDE
         return list(webpages)
+
 
     def _crawl_delay(self, url, reppy):
         """TODO"""
@@ -128,7 +130,7 @@ class Crawler:
                     self.crawl_delay(page.url, reppy)
                     futures.append(
                         tpe.submit(
-                            page.crawl_page,
+                            page.get_page,
                             respect_robots=self.respect_robots,
                             user_agent=self.user_agent,
                             request_kwargs=self.request_kwargs,
@@ -160,6 +162,7 @@ class Crawler:
                 # Get all links from pages that were just fetched.
                 links_to_crawl = set()
                 for page in fetched_pages:
+                    page.get_page_links()
                     valid_links = [
                         link
                         for link in page.links

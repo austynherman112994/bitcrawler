@@ -13,68 +13,115 @@ import link_utils
 
 log = logging.getLogger('bitcrawler').addHandler(logging.NullHandler())
 
+
 class Webpage:
-    """TODO: Docstring
+    """Webpage provides the ability to fetch a webpage. Stores
+    data from the retrieval of the page.
     """
     def __init__(self, url):
         self.url = url
         self.response = None
-        self.soup = None
         self.links = None
-        self.same_site_links = None
         self.allowed_by_robots = None
         self.message = None
         self.error = None
-
-    def __str__(self):
-        return str({
-            'url': self.url,
-        })
+        self.__fetched = False
 
     @classmethod
     def fetch(cls, url, **requests_kwargs):
-        """TODO: Docstring
+        """Fetches the webpage for the URL using the requests library.
 
-        Use requests sessions for more  functionality.
+        Args:
+            url (str): The target URL.
+            **requests_kwargs (kwargs, optional): Any additional parameters
+                to pass onto the reqeusts library.
+
+        Returns:
+            obj requests.Response: The response from the web request.
+
+        Raises:
+            Exception: Can raise a variety of exceptions. See requests library
+            for more details.
+
         """
         if not requests_kwargs:
             requests_kwargs = {}
         return requests.get(url, **requests_kwargs)
 
+
     @classmethod
-    def parse_mime_type(cls, content_type_header):
-        """TODO: Docstring
+    def parse_mime_type(cls, mime_type):
+        """Parses a mime type into its content type and parameters.
+
+        Args:
+            url (str): The target URL.
+            **requests_kwargs (kwargs, optional): Any additional parameters
+                to pass onto the reqeusts library.
+
+        Returns:
+            tuple:
+                str: The type of the content.
+                str: The content type parameters.
+
+        Examples:
+            >>> parse_mime_type("text/html; encoding=utf-8")
+            ("text/html", "encoding=utf-8",)
+
         """
-        if content_type_header:
-            split_content_type = content_type_header.split(";")
-            if len(split_content_type) >= 2:
-                return split_content_type[0], split_content_type[1].strip()
-            elif len(split_content_type) == 1:
-                content_type = split_content_type[0]
+        if mime_type:
+            split_mime_type = mime_type.split(";")
+            if len(split_mime_type) >= 2:
+                return split_mime_type[0], split_mime_type[1].strip()
+            elif len(split_mime_type) == 1:
+                content_type = split_mime_type[0]
                 return content_type, None
         return None, None
 
+
     @classmethod
     def _resolve_relative_links(cls, original_url, links):
-        """TODO: Docstring
+        """Converts any relative links into full links.
+
+        Leaves any non relative links unmodified.
+
+        Args:
+            original_url (str): The original url the links originated from.
+            links (list): A list of links.
+
+        Returns:
+            list: A list of links where relative links are now full links.
+
+        Examples:
+            >>> _resolve_relative_links(
+            >>>    "http://python.org"
+            >>>    [
+            >>>        "http://python.org/about",
+            >>>        "/test",
+            >>>        "http://pandas.com"
+            >>>    ]
+            >>> )
+            ["http://python.org/about", "http://python.org/test", "http://pandas.com"]
+
         """
         links = list(set(
             urllib.parse.urljoin(original_url, link)
             if link_utils.is_relative(link) else link for link in links))
         return links
 
-    @classmethod
-    def get_same_site_links(cls, original_url, links):
-        """TODO: Docstring
-        """
-        return list(set(
-                    link for link in links
-                    if link_utils.is_same_domain(link, original_url)))
 
     @classmethod
-    def get_links(cls, url, soup):
-        """TODO: Docstring
+    def get_html_links(cls, url, html):
+        """Parses links from an html document.
+
+        Args:
+            url (str): The target URL.
+            html (str): the html document.
+
+        Returns:
+            list: A list containing all valid urls found in the html.
+
         """
+        self.soup = parsing.HtmlParser(html, "html.parser")
         discovered_links = soup.get_links()
 
         # Append base url to relative links
@@ -87,6 +134,7 @@ class Webpage:
             url for url in resolved_links if validators.url(url)))
         return valid_urls
 
+
     @classmethod
     def is_allowed_by_robots(
             cls,
@@ -94,7 +142,21 @@ class Webpage:
             reppy=None,
             reppy_cache_kwargs=None,
             reppy_request_kwargs=None):
-        """TODO: Docstring
+        """Determine if a page is crawlable by robots.txt.
+
+        Leverages the Reppy library for retrieval and parsing of robots.txt.
+
+        Args:
+            url (str): The target URL.
+            reppy (:obj:robots.RobotParser, optional): A robots parsing object.
+            reppy_cache_kwargs (dict, optional): Reppy cache kwargs.
+                For creating a robots.RobotParser if one is not supplied.
+            reppy_request_kwargs (dict, optional): requests kwargs.
+                For creating a robots.RobotParser if one is not supplied.
+
+        Returns:
+            bool: True if the page is allowed by robots.txt. Otherwise False.
+
         """
 
         if not reppy:
@@ -103,7 +165,41 @@ class Webpage:
                 request_kwargs=reppy_request_kwargs)
         return reppy.allowed_by_robots(url)
 
-    def crawl_page(
+
+    def get_page_links(self):
+        """Extracts links from a page.
+
+        Only supports documents with a content type of 'text/html'.
+        TODO: Add further support for other doc types.
+
+        Returns:
+            list(str): A list of links from the page.
+
+        Raises:
+            RuntimeError: Raises a runtime error if this function is called
+            prior to calling `Webpage(...).get_page`.
+            The response from `get_page` is required in this function.
+
+        """
+        if not self.__fetched:
+            raise RuntimeError(
+                "Function `get_page_links` cannot be called before calling "
+                "`get_page`. `get_page` initializes required components.")
+        if self.response:
+            if self.response.ok:
+                # Second param will be charset for text/html docs
+                content_type, content_type_params = (
+                    self.parse_mime_type(
+                        self.response.headers.get('content-type')))
+
+                if content_type == 'text/html':
+                    self.links = self.get_links(self.url, self.response.text)
+
+                ### TODO add support for other content types.
+
+        return self.links
+
+    def get_page(
             self,
             user_agent,
             request_kwargs=None,
@@ -111,8 +207,23 @@ class Webpage:
             reppy=None,
             reppy_cache_kwargs=None,
             reppy_request_kwargs=None):
-        """TODO: Docstring
+        """Fetches a webpage for the provided URL.
+
+        Args:
+            user_agent (str): The user_agent to use during requests.
+                Note: This param overrides any user agent kwargs.
+            request_kwargs (dict, optional): The page retrieval request kwargs.
+            respect_robots (bool): If true, robots.txt will be honored.
+            reppy (:obj:robots.RobotParser, optional): A robots parsing object.
+            reppy_cache_kwargs (dict, optional): Reppy cache kwargs.
+                For creating a robots.RobotParser if one is not supplied.
+            reppy_request_kwargs (dict, optional): requests kwargs.
+                For creating a robots.RobotParser if one is not supplied.
+        Returns:
+            this: The instance of the Webpage class.
+
         """
+        self.__fetched = True
         if not request_kwargs:
             request_kwargs = {}
 
@@ -133,19 +244,7 @@ class Webpage:
                     f"{self.url}: {err}")
                 logging.error(self.message)
                 self.error = err
+            if self.response and not self.response.ok:
+                self.message = f"URL %s returned a {self.response.status_code} status code."
 
-            if self.response:
-                if self.response.ok:
-                    # Second param will be charset for text/html docs
-                    content_type, _ = (
-                        self.parse_mime_type(
-                            self.response.headers.get('content-type')))
-
-                    if content_type == 'text/html':
-                        self.soup = parsing.HtmlParser(self.response.text, "html.parser")
-                        self.links = self.get_links(self.url, self.soup)
-                        self.same_site_links = (
-                            self.get_same_site_links(self.url, self.links))
-                else:
-                    self.message = f"URL %s returned a {self.response.status_code} status code."
         return self

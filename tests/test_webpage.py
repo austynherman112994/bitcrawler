@@ -78,25 +78,6 @@ def test__resolve_relative_links():
     assert links.sort() == results_4.sort()
 
 
-def test_get_same_site_links():
-    original_url = "http://python.org/"
-    input_links = [
-        "http://python.org/",
-        "http://python.org:8080/",
-        "http://python.org/path/1234",
-        "http://about.python.org/path/1234",
-        "http://yahoo.com/search"
-    ]
-    results = [
-        "http://python.org/",
-        "http://python.org:8080/",
-        "http://python.org/path/1234",
-        "http://about.python.org/path/1234",
-    ]
-    links = webpage.Webpage.get_same_site_links(original_url, input_links)
-
-    assert links.sort() == results.sort()
-
 @patch.object(
     parsing.HtmlParser,
     'get_links',
@@ -113,9 +94,10 @@ def test_get_html_links__invalid_url(mock_get_links):
         "http://python.org/about",
         "http://python.org/123"
     ]
-    links = webpage.Webpage.get_links("http://python.org", parsing.HtmlParser(""))
+    page = webpage.Webpage("http://python.org")
+    page._fetched = True
+    links = page.get_page_links()
     assert links.sort() == expected_results.sort()
-
 
 
 # @patch.object(

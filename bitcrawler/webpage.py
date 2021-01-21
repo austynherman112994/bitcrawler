@@ -11,7 +11,7 @@ import parsing
 import robots
 import link_utils
 
-log = logging.getLogger('bitcrawler').addHandler(logging.NullHandler())
+log = logging.getLogger('bitcrawler')
 
 
 class Webpage:
@@ -19,13 +19,18 @@ class Webpage:
     data from the retrieval of the page.
     """
     def __init__(self, url):
+        """ Initializes Webpage.
+
+        Args:
+            url (str): The URL associated with the webpage.
+        """
         self.url = url
         self.response = None
         self.links = None
         self.allowed_by_robots = None
         self.message = None
         self.error = None
-        self.__fetched = False
+        self._fetched = False
 
     @classmethod
     def fetch(cls, url, **requests_kwargs):
@@ -121,7 +126,7 @@ class Webpage:
             list: A list containing all valid urls found in the html.
 
         """
-        self.soup = parsing.HtmlParser(html, "html.parser")
+        soup = parsing.HtmlParser(html, "html.parser")
         discovered_links = soup.get_links()
 
         # Append base url to relative links
@@ -181,7 +186,7 @@ class Webpage:
             The response from `get_page` is required in this function.
 
         """
-        if not self.__fetched:
+        if not self._fetched:
             raise RuntimeError(
                 "Function `get_page_links` cannot be called before calling "
                 "`get_page`. `get_page` initializes required components.")
@@ -193,10 +198,11 @@ class Webpage:
                         self.response.headers.get('content-type')))
 
                 if content_type == 'text/html':
-                    self.links = self.get_links(self.url, self.response.text)
+                    self.links = self.get_html_links(self.url, self.response.text)
 
                 ### TODO add support for other content types.
-
+        if not self.links:
+            self.links = []
         return self.links
 
     def get_page(
@@ -223,7 +229,7 @@ class Webpage:
             this: The instance of the Webpage class.
 
         """
-        self.__fetched = True
+        self._fetched = True
         if not request_kwargs:
             request_kwargs = {}
 

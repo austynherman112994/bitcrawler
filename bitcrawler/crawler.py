@@ -8,24 +8,17 @@ import link_utils
 import robots
 import webpage
 
-log = logging.getLogger('bitcrawler').addHandler(logging.NullHandler())
+log = logging.getLogger('bitcrawler')
 ### Add docs for disabling logging.
 # logging.getLogger('bitcrawler').propagate = False
 
 class Crawler:
-    """TODO: Docstring
+    """Provides functionality for crawling webpages.
 
-    TODOS:
-        Add allowed and disallowed domains logic.
-        Allowed domains should override cross_site for the povided domains.
-
-        Disallowed domains should only be applied with cross site true.
-
-        ----
-        Crawl delays
     """
     def __init__(
-            self, user_agent="python-requests",
+            self,
+            user_agent="python-requests",
             crawl_delay=0,
             crawl_depth=5,
             cross_site=False,
@@ -36,7 +29,28 @@ class Crawler:
             request_kwargs=None,
             reppy_cache_kwargs=None,
             reppy_request_kwargs=None):
-        """TODO"""
+        """ Initializs Crawler.
+
+        Args:
+            user_agent (str): The user_agent to use during requests.
+                Note: This param overrides any user agent kwargs.
+            crawl_delay (int, optional): Seconds to wait between page requests. Default 0.
+                Disabled if multithreading is True.
+            crawl_depth (bool, optional): Depth of pages to crawl. Default 5.
+            cross_site (bool, optional): Allow crawling across domains. Default False.
+            respect_robots (bool, optional): Respect robots.txt. Default True.
+            respect_robots_crawl_delay (bool, optional): Respect robots.txt crawl delay.
+                Disabled if multithreading is True.
+            multithreading (bool, optional): Crawl using multithreading. Default False.
+            max_threads (int, optional): Max number of treads. Default 100.
+                Set to 1 if multithreading is False.
+            request_kwargs (dict, optional): The page retrieval request kwargs.
+            reppy_cache_kwargs (dict, optional): Reppy cache kwargs. Default None.
+                For creating a robots.RobotParser.
+            reppy_request_kwargs (dict, optional): requests kwargs. Default None.
+                For creating a robots.RobotParser.
+
+        """
         self.user_agent = user_agent
         self.crawl_depth = crawl_depth
         self.cross_site = cross_site
@@ -62,13 +76,26 @@ class Crawler:
 
 
     def parse(self, webpages):
-        """TODO"""
-        ### OVERRIDE
+        """Parses the webpages. Meant to be Overridden.
+
+        Args:
+            webpages (list(webpage.Webpage)): A list of webpages.
+
+        Returns:
+            list(webpage.Webpage): The crawled webpages.
+
+        """
         return list(webpages)
 
 
-    def _crawl_delay(self, url, reppy):
-        """TODO"""
+    def _wait_crawl_delay(self, url, reppy):
+        """Sleeps for the crawl delay.
+
+        Args:
+            url (str): The current URL.
+            reppy (:obj: `robots.RobotParser`): A reppy object.
+
+        """
         if not self.multithreading:
             if self.respect_robots_crawl_delay:
                 robots_crawl_delay = reppy.crawl_delay(url, self.user_agent)
@@ -80,7 +107,35 @@ class Crawler:
 
     def _is_crawlable_domain(
         self, url, original_domain, allowed_domains, disallowed_domains):
-        """TODO"""
+        """Checks if a domain is crawlable.
+
+        If the domain is the same as the original url, it is crawlable.
+        Crawlable if `cross_site` is True and the url domain is in `allowed_domains`.
+        Crawlable if `cross_site` is True and the url domain is in `disallowed_domains`.
+
+        Args:
+            url (str): The URL to be crawled.
+            original_domain (str): The domain from the original URL.
+            allowed_domains (list(str)): A list of allowed domains.
+                Disabled when `cross_site` is False.
+            disallowed_domains (list(str)): A list of disallowed domains.
+                Disabled when `cross_site` is False. Disabled when
+                allowed domains is not empty/null.
+
+        Returns:
+            bool: True if the URL is crawlable. Otherwise False.
+
+        Examples:
+            >>> _is_crawlable_domain("http://python.org", "python.org", [], [])
+            True
+
+            >>> _is_crawlable_domain("http://python.org", "yahoo.com", ["python.org"], [])
+            True
+
+            >>> _is_crawlable_domain("http://python.org", "yahoo.com", [], ["python.org"])
+            False
+
+        """
         url_domain = link_utils.get_domain(url)
         if url_domain == original_domain:
             crawlable = True
@@ -100,10 +155,21 @@ class Crawler:
     def crawl(
         self, url, allowed_domains=None,
         disallowed_domains=None, page_timeout=10):
-        """TODO: Docstring
+        """Crawls webpages by traversing links.
 
-        TODO - ADD multiprocessing.
-        TODO - ADD whitelist/blacklist domain logic.
+        Args:
+            url (str): The URL to be crawled.
+            allowed_domains (list(str)): A list of allowed domains to crawl. Default None
+                Original URL domain takes precidence. `cross_site` must be
+                enabled.
+            disallowed_domains (list(str)): A list of allowed domains to crawl. Default None.
+                Original URL domain takes precidence. `cross_site` must be
+                enabled and `allowed_domains` must be empty/null.
+            page_timeout (int, optional): Number of seconds to allow for page retrieval. Default 10.
+
+        Returns:
+            self.parse(webpages): Returns a call to the overidable parse function.
+                Supplies the webpages as input.
         """
         original_domain = link_utils.get_domain(url)
         reppy = robots.RobotParser(
@@ -120,6 +186,7 @@ class Crawler:
                 "enabled at the same time. `allowed_domains` takes priority.")
 
         def _crawl(urls, depth=0):
+            """"Functionality for crawling a set of urls."""
             # depth starts at 0 so >= terminates
             if depth >= self.crawl_depth:
                 return
@@ -127,7 +194,8 @@ class Crawler:
             futures = []
             with cf.ThreadPoolExecutor(max_workers=self.max_threads) as tpe:
                 for page in webpages:
-                    self.crawl_delay(page.url, reppy)
+                    log.debug("Fetching url %s", page.url)
+                    self._wait_crawl_delay(page.url, reppy)
                     futures.append(
                         tpe.submit(
                             page.get_page,
@@ -160,18 +228,17 @@ class Crawler:
                         crawled_urls[page.url] = page
 
                 # Get all links from pages that were just fetched.
-                links_to_crawl = set()
+                links_to_crawl = []
                 for page in fetched_pages:
-                    page.get_page_links()
+                    page_links = page.get_page_links()
                     valid_links = [
-                        link
-                        for link in page.links
+                        link for link in page.links
                         if self._is_crawlable_domain(
                             link, original_domain,
                             allowed_domains,
                             disallowed_domains)]
-                    links_to_crawl.update(valid_links)
-                links_to_crawl = list(links_to_crawl)
+                    links_to_crawl.extend(valid_links)
+                links_to_crawl = list(set(links_to_crawl))
 
                 # crawl links discovered on pages that were just crawled.
                 _crawl(links_to_crawl, depth=depth+1)
@@ -180,11 +247,12 @@ class Crawler:
         return self.parse(crawled_urls.values())
 
 
-
+import parsing
 crawled_pages = Crawler(
-    cross_site=True, crawl_depth=2,
-    reppy_request_kwargs={"allow_redirects": False}
-).crawl('https://www.yahoo.com')
+    cross_site=True, crawl_depth=2, multithreading=True,
+    reppy_request_kwargs={}
+).crawl('https://www.python.org')
 for pg in crawled_pages:
-    if pg.soup:
-        print(pg.url, "- ", pg.soup.title)
+    if pg.response and pg.response.ok and pg.response.headers.get('content-type').startswith('text/html'):
+        soup = parsing.HtmlParser(pg.response.text, "html.parser")
+        print(pg.url, "- ", soup.title)

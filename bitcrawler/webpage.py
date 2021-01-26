@@ -110,7 +110,7 @@ class Webpage:
         """
         links = list(set(
             urllib.parse.urljoin(original_url, link)
-            if link_utils.is_relative(link) else link for link in links))
+            if link_utils.LinkUtils.is_relative(link) else link for link in links))
         return links
 
 
@@ -130,7 +130,7 @@ class Webpage:
         discovered_links = soup.get_links()
 
         # Append base url to relative links
-        base_url = link_utils.get_base_url(url)
+        base_url = link_utils.LinkUtils.get_base_url(url)
         resolved_links = cls._resolve_relative_links(
             base_url, discovered_links)
 
@@ -144,31 +144,37 @@ class Webpage:
     def is_allowed_by_robots(
             cls,
             url,
+            user_agent,
             reppy=None,
-            reppy_cache_kwargs=None,
-            reppy_request_kwargs=None):
+            request_kwargs=None):
         """Determine if a page is crawlable by robots.txt.
 
         Leverages the Reppy library for retrieval and parsing of robots.txt.
-
+i
         Args:
             url (str): The target URL.
+            user_agent (str): The user agent being used to crawl the page.
             reppy (:obj:robots.RobotParser, optional): A robots parsing object.
-            reppy_cache_kwargs (dict, optional): Reppy cache kwargs.
-                For creating a robots.RobotParser if one is not supplied.
-            reppy_request_kwargs (dict, optional): requests kwargs.
-                For creating a robots.RobotParser if one is not supplied.
+            request_kwargs (dict, optional): requests.get kwargs for fetching the
+                robots.txt file.
 
         Returns:
             bool: True if the page is allowed by robots.txt. Otherwise False.
 
         """
 
-        if not reppy:
-            reppy = robots.RobotParser(
-                cache_kwargs=reppy_cache_kwargs,
-                request_kwargs=reppy_request_kwargs)
-        return reppy.allowed_by_robots(url)
+	    ### TODO See what errors can bubble up from this reppy api
+
+        try:
+            if not reppy:
+                reppy = robots.ReppyUtils
+                allowed = reppy.allowed(url, user_agent, **request_kwargs)
+            else:
+                allowed = reppy.allowed(url, user_agent)
+        except Exception as err:
+            log.exception(err)
+            allowed = True
+        return allowed
 
 
     def get_page_links(self):
@@ -193,7 +199,7 @@ class Webpage:
         if self.response:
             if self.response.ok:
                 # Second param will be charset for text/html docs
-                content_type, content_type_params = (
+                content_type, _ = (
                     self.parse_mime_type(
                         self.response.headers.get('content-type')))
 
@@ -210,9 +216,7 @@ class Webpage:
             user_agent,
             request_kwargs=None,
             respect_robots=True,
-            reppy=None,
-            reppy_cache_kwargs=None,
-            reppy_request_kwargs=None):
+            reppy=None):
         """Fetches a webpage for the provided URL.
 
         Args:
@@ -221,22 +225,26 @@ class Webpage:
             request_kwargs (dict, optional): The page retrieval request kwargs.
             respect_robots (bool): If true, robots.txt will be honored.
             reppy (:obj:robots.RobotParser, optional): A robots parsing object.
-            reppy_cache_kwargs (dict, optional): Reppy cache kwargs.
-                For creating a robots.RobotParser if one is not supplied.
-            reppy_request_kwargs (dict, optional): requests kwargs.
-                For creating a robots.RobotParser if one is not supplied.
         Returns:
             this: The instance of the Webpage class.
 
         """
         self._fetched = True
+
         if not request_kwargs:
             request_kwargs = {}
+    	# If headers is already a field in request_kwargs, update with user_agent.
+        user_agent_header = {'User-Agent': user_agent}
+        if 'headers' in request_kwargs.keys():
+            # Update the headers dict to contain the user_agent.
+            # If a UA is already specified, `user_agent` param takes precidence.
+            request_kwargs['headers'] = {**request_kwargs['headers'], **user_agent_header}
+        else:
+            request_kwargs['headers'] = user_agent_header
 
         if respect_robots:
             self.allowed_by_robots = self.is_allowed_by_robots(
-                self.url, reppy=reppy, reppy_cache_kwargs=reppy_cache_kwargs,
-                reppy_request_kwargs=reppy_request_kwargs)
+                self.url, user_agent, reppy=reppy, request_kwargs=request_kwargs)
 
         # Only False should prevent crawling (None should allow.)
         if self.allowed_by_robots is False:

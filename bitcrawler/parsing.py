@@ -6,10 +6,10 @@ Extends functionality of BeautifulSoup for added html parsing functionality.
 """
 from bs4 import BeautifulSoup
 
-class HtmlParser(BeautifulSoup):
-    """HtmlParser extends functionality provided by BeautifulSoup.
 
-    """
+class HtmlParser(BeautifulSoup):
+    """HtmlParser extends functionality provided by BeautifulSoup."""
+
     def get_links(self):
         """Finds links from anchor tags in the soup.
 
@@ -25,4 +25,4 @@ class HtmlParser(BeautifulSoup):
             ["http://python.org/search", "/about", ..., "http://python.org/learn"]
 
         """
-        return list(set(a['href'] for a in self.find_all('a', href=True)))
+        return list(set(a["href"] for a in self.find_all("a", href=True)))

@@ -1,62 +1,31 @@
 """Utilities for fetching and parsing robots.txt files.
 
 Extends the reppy library (https://github.com/seomoz/reppy)
-for robots.txt fetching and parsing. The utilities below use
-the RobotsCache as it is the best suited for a crawling use case.
+for robots.txt fetching and parsing.
 """
-from reppy.cache import RobotsCache
+
+import urllib.parse
+import reppy.cache
+from reppy.robots import Robots
+import link_utils
 
 
-class RobotParser:
-    """RobotsParser leverages the Reppy library for determining robots.txt
-    crawling rules and restrictions.
-
-    Attributes:
-        reppy (:obj:`reppy.cache.RobotsCache`): The reppy cache object for
-            fetching and parsing robots.txt files.
-
-    """
-    def __init__(
-            self,
-            caching_capacity=100,
-            cache_kwargs=None,
-            request_kwargs=None):
-        """ Initializes RobotsParser.
-
-        Args:
-            caching_capacity (int, optional): Number of robots objects to cache.
-                Default is 100.
-            cache_kwargs (dict, optional): kwargs to pass to the reppy cache. Default is None.
-            request_kwargs (dict, optional): kwargs to pass to requests.get
-                during retrieval of robots.txt. Default is None.
-        """
-
-        if not request_kwargs:
-            request_kwargs = {}
-        if not cache_kwargs:
-            cache_kwargs = {}
-
-        self.reppy = RobotsCache(
-            capacity=caching_capacity, **cache_kwargs, **request_kwargs)
-
+class RobotsCache(reppy.cache.RobotsCache):
+    """Extends the reppy RobotsCache to include extra functionality."""
 
     def crawl_delay(self, url, user_agent="python-requests"):
         """Gets a crawl delay for a given url and user_agent.
-
         Note: Crawl delay is the same for all pages under a robots.txt file for
             a given user agent.
-
+        Note: Going to open a PR on reppy to have this built in.
         Args:
             url (str): The target URL.
             user_agent (str, optional): The user agent. Default "python-requests"
-
         Returns:
             int: The number of seconds the specified user_agent should wait between calls.
-
         Examples:
             >>> crawl_delay("http://python.org", user_agent="python-requests")
             2
-
         """
         reppy = self.reppy.get(url)
         delay = reppy.agent(user_agent).delay
@@ -65,19 +34,88 @@ class RobotParser:
         return delay
 
 
-    def allowed_by_robots(self, url, user_agent="python-requests"):
-        """Determines if a url is crawlable by the specified user agent.
+class ReppyUtils:
+    """A set of reppy utilities.
+    """
+    @classmethod
+    def get_robots_url(cls, url):
+        """ Gets the URL where the robots file should be stored.
 
         Args:
-            url (str): The target URL.
-            user_agent (str, optional): The user agent. Default "python-requests"
-
+            url (str): The url to derive the robots url from.
+        
         Returns:
-            bool: True if crawling is allowed by robots.txt. Otherwise False.
+            str: The robots.txt url.
 
         Examples:
-            >>> allowed_by_robots("http://python.org", user_agent="python-requests")
-            True
-
+            >>> ReppyUtils.get_robots_url('http://python.org/test/path")
+            'http://python.org/robots.txt'_
         """
-        return self.reppy.allowed(url, user_agent)
+        base_url = link_utils.LinkUtils.get_base_url(url)
+        robots_url = urllib.parse.urljoin(base_url, "robots.txt")
+        print(robots_url)
+        return robots_url
+
+    @classmethod
+    def fetch_robots(cls, robots_url, request_kwargs=None):
+        """Fetches the robots URL.
+
+        Args:
+            robots_url (str): The robots url to fetch.
+            requests_kwargs (dict, optional): The keyword arguments to pass into
+                the requests.get call to the robots.txt url. Default `None`
+        Returns:
+            reppy.Robots: the reppy object from feting the robots.txt file.
+        """
+        if not request_kwargs:
+            request_kwargs = {}
+        robots = Robots.fetch(robots_url, **request_kwargs)
+        return robots
+
+    @classmethod
+    def crawl_delay(cls, url, user_agent, request_kwargs=None):
+        """Determines the robots crawl delay for a given user agent.
+
+        Args:
+            url (str): The url to get a crawl delay for.
+            user_agent: The user agent to get the crawl delay for.
+            requests_kwargs (dict, optional): The keyword arguments to pass into
+                the requests.get call to the robots.txt url. Default `None`
+        
+        Returns:
+            int: The time to wait between crawling pages (seconds).
+    
+        Examples:
+            >>> ReppyUtils.crawl_delay('http://python.org/test', 'python-requests')
+            2
+        """
+        if not rejquest_kwargs:
+            request_kwargs = {}
+        robots_url = cls.get_robots_url(url)
+        reppy = cls.fetch_robots(robots_url, **request_kwargs)
+        return reppy.agent(user_agent).delay
+
+    @classmethod
+    def allowed(cls, url, user_agent="python-requests", request_kwargs=None):
+        """Determines if a URL is crawlable for a given user agent.
+
+        Args:
+            url (str): The url to check for crawlability.
+            user_agent (str, optional): The user agent to check for in robots.txt.
+                Default 'python-requests'.
+            requests_kwargs (dict, optional): The keyword arguments to pass into
+                the requests.get call to the robots.txt url. Default `None`
+
+        Returns:
+            bool: True if the page is allowed to be crawled.
+        
+        Examples:
+            >>> ReppyUtils.allowed('http://python.org/test')
+            True
+        
+        """
+        if not request_kwargs:
+            request_kwargs = {}
+        robots_url = cls.get_robots_url(url)
+        reppy = cls.fetch_robots(robots_url, **request_kwargs)
+        return reppy.allowed(url, user_agent)

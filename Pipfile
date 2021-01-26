@@ -10,6 +10,7 @@ requests = "*"
 reppy = "*"
 beautifulsoup4 = "*"
 validators = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.8"

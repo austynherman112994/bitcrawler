@@ -5,9 +5,10 @@ import logging
 import time
 import concurrent.futures as cf
 
-import link_utils
-import robots
-import webpage
+from . import link_utils
+from . import robots
+from . import webpage
+
 
 log = logging.getLogger('bitcrawler')
 ### Add docs for disabling logging.
@@ -29,7 +30,7 @@ class Crawler:
             respect_robots_crawl_delay=False,
             multithreading=False,
             max_threads=100,
-            webpage_class=webpage.Webpage,
+            webpage_builder=webpage.WebpageBuilder,
             request_kwargs=None,
             reppy_cache_capacity=100,
             reppy_cache_policy=None,
@@ -50,21 +51,23 @@ class Crawler:
             multithreading (bool, optional): Crawl using multithreading. Default False.
             max_threads (int, optional): Max number of treads. Default 100.
                 Set to 1 if multithreading is False.
-            webpage_class (`obj` webpage.Webpage, optional): The webpage.Webpage class to use for fetching
-                and storing relevant webpage info. Allows for the extension of the class. Default webpage.Webpage. 
+            webpage_class (`obj` webpage.Webpage, optional): The webpage.Webpage class to use
+                for fetching and storing relevant webpage info.
+                Allows for the extension of the class. Default webpage.Webpage.
             request_kwargs (dict, optional): The page retrieval request kwargs. Default `None`
-            reppy_cache_capacity (int, optional): The number of reppy.Robots objects to store in cache.
-                Default 100.
+            reppy_cache_capacity (int, optional): The number of reppy.Robots objects to
+                store in cache. Default 100.
             reppy_cache_policy (`obj`, optional): The reppy ttl policy.
                 If `None` default is reppy.cache.policy.ReraiseExceptionPolicy(ttl=600).
                 See reppy for more details (https://github.com/seomoz/reppy).
             reppy_ttl_policy (`obj`, optional): The reppy ttl policy.
                 If `None` default is reppy.Robots.DEFAULT_TTL_POLICY.
                 See reppy for more details (https://github.com/seomoz/reppy).
-            reppy_args (tuple): Additional args passed to the reppy.cache.RobotsCache initialization.
+            reppy_args (tuple, optional): Additional args passed to the
+                reppy.cache.RobotsCache initialization.
 
         """
-        self.webpage_class = webpage_class
+        self.webpage_builder = webpage_builder
         self.user_agent = user_agent
         self.crawl_depth = crawl_depth
         self.cross_site = cross_site
@@ -216,15 +219,15 @@ class Crawler:
             # depth starts at 0 so >= terminates
             if depth >= self.crawl_depth:
                 return
-            webpages = [self.webpage_class(url) for url in urls if url not in crawled_urls.keys()]
             futures = []
             with cf.ThreadPoolExecutor(max_workers=self.max_threads) as tpe:
-                for page in webpages:
-                    log.debug("Fetching url %s", page.url)
-                    self._wait_crawl_delay(page.url, self.reppy)
+                for url in urls:
+                    log.debug("Fetching url %s", url)
+                    self._wait_crawl_delay(url, self.reppy)
                     futures.append(
                         tpe.submit(
-                            page.get_page,
+                            self.webpage_builder.build,
+                            url,
                             respect_robots=self.respect_robots,
                             user_agent=self.user_agent,
                             request_kwargs=self.request_kwargs,
@@ -236,14 +239,16 @@ class Crawler:
                     try:
                         page = future.result(timeout=page_timeout)
                     except cf.TimeoutError as err:
-                        page = webpages[index]
+                        page = webpage.Webpage()
+                        page.url = urls[index]
                         page.message = (
                             f"A timeout ({page_timeout} sec) occurred while "
                             f"attempting to fetch url ({page.url})")
                         page.error = err
                         log.error(page.message)
                     except Exception as err:
-                        page = webpages[index]
+                        page = webpage.Webpage()
+                        page.url = urls[index]
                         page.message = (
                             f"An unexpected error occurred while attempting to "
                             f"fetch url ({page.url}) - {err}")
@@ -271,13 +276,3 @@ class Crawler:
 
         _crawl([url])
         return self.parse(crawled_urls.values())
-
-
-import parsing
-crawled_pages = Crawler(
-    cross_site=True, crawl_depth=2, multithreading=True
-).crawl('https://www.python.org')
-for pg in crawled_pages:
-    if pg.response and pg.response.ok and pg.response.headers.get('content-type').startswith('text/html'):
-        soup = parsing.HtmlParser(pg.response.text, "html.parser")
-        print(pg.url, "- ", soup.title)

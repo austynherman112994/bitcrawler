@@ -7,9 +7,9 @@ import requests
 
 import validators
 
-import parsing
-import robots
-import link_utils
+from . import parsing
+from . import robots
+from . import link_utils
 
 log = logging.getLogger('bitcrawler')
 
@@ -18,13 +18,13 @@ class Webpage:
     """Webpage provides the ability to fetch a webpage. Stores
     data from the retrieval of the page.
     """
-    def __init__(self, url):
+    def __init__(self):
         """ Initializes Webpage.
 
         Args:
             url (str): The URL associated with the webpage.
         """
-        self.url = url
+        self.url = None
         self.response = None
         self.links = None
         self.allowed_by_robots = None
@@ -213,6 +213,7 @@ i
 
     def get_page(
             self,
+            url,
             user_agent,
             request_kwargs=None,
             respect_robots=True,
@@ -220,6 +221,7 @@ i
         """Fetches a webpage for the provided URL.
 
         Args:
+            url (str): The url for the webpage.
             user_agent (str): The user_agent to use during requests.
                 Note: This param overrides any user agent kwargs.
             request_kwargs (dict, optional): The page retrieval request kwargs.
@@ -230,7 +232,7 @@ i
 
         """
         self._fetched = True
-
+        self.url = url
         if not request_kwargs:
             request_kwargs = {}
     	# If headers is already a field in request_kwargs, update with user_agent.
@@ -262,3 +264,32 @@ i
                 self.message = f"URL %s returned a {self.response.status_code} status code."
 
         return self
+
+
+class WebpageBuilder:
+    """Builds a Webpage object by intilizing the class and calling
+    the `get_page` method.
+    """
+    @classmethod
+    def build(
+            cls,
+            url,
+            user_agent,
+            request_kwargs=None,
+            respect_robots=True,
+            reppy=None):
+        """Builds a Webpage by fetching the provided URL.
+
+        Args:
+            user_agent (str): The user_agent to use during requests.
+                Note: This param overrides any user agent kwargs.
+            request_kwargs (dict, optional): The page retrieval request kwargs.
+            respect_robots (bool): If true, robots.txt will be honored.
+            reppy (:obj:robots.RobotParser, optional): A robots parsing object.
+        Returns:
+            this: The instance of the Webpage class.
+
+        """
+        page = Webpage()
+        page.get_page(url, user_agent, request_kwargs, respect_robots, reppy)
+        return page

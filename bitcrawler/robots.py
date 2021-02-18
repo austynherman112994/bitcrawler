@@ -2,16 +2,19 @@
 
 Extends the reppy library (https://github.com/seomoz/reppy)
 for robots.txt fetching and parsing.
+
 """
 
 import urllib.parse
 import reppy.cache
 from reppy.robots import Robots
-import link_utils
+from . import link_utils
 
 
 class RobotsCache(reppy.cache.RobotsCache):
-    """Extends the reppy RobotsCache to include extra functionality."""
+    """Extends the reppy RobotsCache to include extra functionality.
+
+    """
 
     def crawl_delay(self, url, user_agent="python-requests"):
         """Gets a crawl delay for a given url and user_agent.
@@ -27,8 +30,8 @@ class RobotsCache(reppy.cache.RobotsCache):
             >>> crawl_delay("http://python.org", user_agent="python-requests")
             2
         """
-        reppy = self.reppy.get(url)
-        delay = reppy.agent(user_agent).delay
+        robots = self.get(url)
+        delay = robots.agent(user_agent).delay
         if not delay:
             delay = 0
         return delay
@@ -43,7 +46,7 @@ class ReppyUtils:
 
         Args:
             url (str): The url to derive the robots url from.
-        
+
         Returns:
             str: The robots.txt url.
 
@@ -81,19 +84,19 @@ class ReppyUtils:
             user_agent: The user agent to get the crawl delay for.
             requests_kwargs (dict, optional): The keyword arguments to pass into
                 the requests.get call to the robots.txt url. Default `None`
-        
+
         Returns:
             int: The time to wait between crawling pages (seconds).
-    
+
         Examples:
             >>> ReppyUtils.crawl_delay('http://python.org/test', 'python-requests')
             2
         """
-        if not rejquest_kwargs:
+        if not request_kwargs:
             request_kwargs = {}
         robots_url = cls.get_robots_url(url)
-        reppy = cls.fetch_robots(robots_url, **request_kwargs)
-        return reppy.agent(user_agent).delay
+        robots = cls.fetch_robots(robots_url, **request_kwargs)
+        return robots.agent(user_agent).delay
 
     @classmethod
     def allowed(cls, url, user_agent="python-requests", request_kwargs=None):
@@ -108,14 +111,14 @@ class ReppyUtils:
 
         Returns:
             bool: True if the page is allowed to be crawled.
-        
+
         Examples:
             >>> ReppyUtils.allowed('http://python.org/test')
             True
-        
+
         """
         if not request_kwargs:
             request_kwargs = {}
         robots_url = cls.get_robots_url(url)
-        reppy = cls.fetch_robots(robots_url, **request_kwargs)
-        return reppy.allowed(url, user_agent)
+        robots = cls.fetch_robots(robots_url, **request_kwargs)
+        return robots.allowed(url, user_agent)

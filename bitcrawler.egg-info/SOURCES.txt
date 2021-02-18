@@ -10,3 +10,9 @@ bitcrawler.egg-info/PKG-INFO
 bitcrawler.egg-info/SOURCES.txt
 bitcrawler.egg-info/dependency_links.txt
 bitcrawler.egg-info/top_level.txt
+tests/__init__.py
+tests/test_crawler.py
+tests/test_link_utils.py
+tests/test_parsing.py
+tests/test_robots.py
+tests/test_webpage.py

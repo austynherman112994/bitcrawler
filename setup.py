@@ -15,8 +15,14 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: Apache License",
+        "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
+    ],
+    install_requires=[
+        'requests',
+        'reppy',
+        'beautifulsoup4',
+        'validators'
     ],
     python_requires='>=3.6',
 )

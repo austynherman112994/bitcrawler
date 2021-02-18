@@ -1,0 +1,100 @@
+bitcrawler
+==========
+**What is it?**
+
+*Bitcrawler* is a Python package that provides functionality for crawling & scraping the web. The library brings simplicity, speed, and extensibility to any crawling project.
+The library can be exteded to easily add on additional crawling behavior and functionality for specific use cases.
+
+
+**Installation**
+
+.. code-block:: sh
+
+    pip install bitcrawler
+
+
+**Dependencies**
+
+- Reppy
+- BeautifulSoup4
+- Requests
+
+
+**Example Crawler**
+
+The below example extends the crawler object and overrides the parse function.
+The parse function is always called at the end of crawling. It is passed all the pages fetched.
+In the below example the pages are parsed using beautifulsoup and the title is printed with the URL.
+
+.. code-block:: python
+
+    from bs4 import BeautifulSoup
+    from bitcrawler import Crawler
+
+    class MyCrawler(Crawler):
+        def parse(self, webpages):
+            for page in webpages:
+                # If page response is not none, response code is in 200s, and document is html.
+                if page.response and \
+                   page.response.ok and \
+                   page.response.headers.get('content-type').startswith('text/html'):
+                    soup = BeautifulSoup(page.response.text, "html.parser")
+                    print(page.url, "- ", soup.title) 
+
+    # Initializes the crawler with the configuration specified by parameters.
+    crawler = MyCrawler(cross_site=True, crawl_depth=2, multithreading=True)
+    # Crawls pages starting from "http://test.com"
+    crawled_pages = crawler.crawl("http://test.com")
+
+
+
+Submodules
+----------
+
+bitcrawler.crawler module
+-------------------------
+
+.. automodule:: bitcrawler.crawler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+bitcrawler.link\_utils module
+-----------------------------
+
+.. automodule:: bitcrawler.link_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+bitcrawler.parsing module
+-------------------------
+
+.. automodule:: bitcrawler.parsing
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+bitcrawler.robots module
+------------------------
+
+.. automodule:: bitcrawler.robots
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+bitcrawler.webpage module
+-------------------------
+
+.. automodule:: bitcrawler.webpage
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: bitcrawler
+   :members:
+   :undoc-members:
+   :show-inheritance:

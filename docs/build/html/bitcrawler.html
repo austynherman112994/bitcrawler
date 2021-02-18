@@ -1,0 +1,680 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bitcrawler &#8212; BitCrawler  documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="bitcrawler">
+<h1>bitcrawler<a class="headerlink" href="#bitcrawler" title="Permalink to this headline">¶</a></h1>
+<p><strong>What is it?</strong></p>
+<p><em>Bitcrawler</em> is a Python package that provides functionality for crawling &amp; scraping the web. The library brings simplicity, speed, and extensibility to any crawling project.
+The library can be exteded to easily add on additional crawling behavior and functionality for specific use cases.</p>
+<p><strong>Installation</strong></p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>pip install bitcrawler
+</pre></div>
+</div>
+<p><strong>Dependencies</strong></p>
+<ul class="simple">
+<li><p>Reppy</p></li>
+<li><p>BeautifulSoup4</p></li>
+<li><p>Requests</p></li>
+</ul>
+<p><strong>Example Crawler</strong></p>
+<p>The below example extends the crawler object and overrides the parse function.
+The parse function is always called at the end of crawling. It is passed all the pages fetched.
+In the below example the pages are parsed using beautifulsoup and the title is printed with the URL.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+<span class="kn">from</span> <span class="nn">bitcrawler</span> <span class="kn">import</span> <span class="n">Crawler</span>
+
+<span class="k">class</span> <span class="nc">MyCrawler</span><span class="p">(</span><span class="n">Crawler</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">webpages</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">webpages</span><span class="p">:</span>
+            <span class="c1"># If page response is not none, response code is in 200s, and document is html.</span>
+            <span class="k">if</span> <span class="n">page</span><span class="o">.</span><span class="n">response</span> <span class="ow">and</span> \
+               <span class="n">page</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">ok</span> <span class="ow">and</span> \
+               <span class="n">page</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;content-type&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;text/html&#39;</span><span class="p">):</span>
+                <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;html.parser&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="s2">&quot;- &quot;</span><span class="p">,</span> <span class="n">soup</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+
+<span class="c1"># Initializes the crawler with the configuration specified by parameters.</span>
+<span class="n">crawler</span> <span class="o">=</span> <span class="n">MyCrawler</span><span class="p">(</span><span class="n">cross_site</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">crawl_depth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">multithreading</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># Crawls pages starting from &quot;http://test.com&quot;</span>
+<span class="n">crawled_pages</span> <span class="o">=</span> <span class="n">crawler</span><span class="o">.</span><span class="n">crawl</span><span class="p">(</span><span class="s2">&quot;http://test.com&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-bitcrawler.crawler">
+<span id="bitcrawler-crawler-module"></span><h2>bitcrawler.crawler module<a class="headerlink" href="#module-bitcrawler.crawler" title="Permalink to this headline">¶</a></h2>
+<p>This module provides functionality for crawling the web.</p>
+<dl class="py class">
+<dt id="bitcrawler.crawler.Crawler">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bitcrawler.crawler.</span></code><code class="sig-name descname"><span class="pre">Crawler</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">user_agent='python-requests'</span></em>, <em class="sig-param"><span class="pre">crawl_delay=0</span></em>, <em class="sig-param"><span class="pre">crawl_depth=5</span></em>, <em class="sig-param"><span class="pre">cross_site=False</span></em>, <em class="sig-param"><span class="pre">respect_robots=True</span></em>, <em class="sig-param"><span class="pre">respect_robots_crawl_delay=False</span></em>, <em class="sig-param"><span class="pre">multithreading=False</span></em>, <em class="sig-param"><span class="pre">max_threads=100</span></em>, <em class="sig-param"><span class="pre">webpage_builder=&lt;class</span> <span class="pre">'bitcrawler.webpage.WebpageBuilder'&gt;</span></em>, <em class="sig-param"><span class="pre">request_kwargs=None</span></em>, <em class="sig-param"><span class="pre">reppy_cache_capacity=100</span></em>, <em class="sig-param"><span class="pre">reppy_cache_policy=None</span></em>, <em class="sig-param"><span class="pre">reppy_ttl_policy=None</span></em>, <em class="sig-param"><span class="pre">reppy_args=()</span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.crawler.Crawler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Provides functionality for crawling webpages.</p>
+<dl class="py method">
+<dt id="bitcrawler.crawler.Crawler.crawl">
+<code class="sig-name descname"><span class="pre">crawl</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_domains</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disallowed_domains</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.crawler.Crawler.crawl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Crawls webpages by traversing links.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> (<em>str</em>) – The URL to be crawled.</p></li>
+<li><p><strong>allowed_domains</strong> (<em>list</em><em>(</em><em>str</em><em>)</em>) – A list of allowed domains to crawl. Default None
+Original URL domain takes precidence. <cite>cross_site</cite> must be
+enabled.</p></li>
+<li><p><strong>disallowed_domains</strong> (<em>list</em><em>(</em><em>str</em><em>)</em>) – A list of allowed domains to crawl. Default None.
+Original URL domain takes precidence. <cite>cross_site</cite> must be
+enabled and <cite>allowed_domains</cite> must be empty/null.</p></li>
+<li><p><strong>page_timeout</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of seconds to allow for page retrieval. Default 10.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Returns a call to the overidable parse function.</dt><dd><p>Supplies the webpages as input.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>self.parse(webpages)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bitcrawler.crawler.Crawler.parse">
+<code class="sig-name descname"><span class="pre">parse</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">webpages</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.crawler.Crawler.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses the webpages. Meant to be Overridden.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>webpages</strong> (<em>list</em><em>(</em><a class="reference internal" href="#bitcrawler.webpage.Webpage" title="bitcrawler.webpage.Webpage"><em>webpage.Webpage</em></a><em>)</em>) – A list of webpages.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The crawled webpages.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list(<a class="reference internal" href="#bitcrawler.webpage.Webpage" title="bitcrawler.webpage.Webpage">webpage.Webpage</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-bitcrawler.link_utils">
+<span id="bitcrawler-link-utils-module"></span><h2>bitcrawler.link_utils module<a class="headerlink" href="#module-bitcrawler.link_utils" title="Permalink to this headline">¶</a></h2>
+<p>Provides tools for interacting with links and URLs.</p>
+<dl class="py class">
+<dt id="bitcrawler.link_utils.LinkUtils">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bitcrawler.link_utils.</span></code><code class="sig-name descname"><span class="pre">LinkUtils</span></code><a class="headerlink" href="#bitcrawler.link_utils.LinkUtils" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Utils for working with URLs and links.</p>
+<dl class="py method">
+<dt id="bitcrawler.link_utils.LinkUtils.get_base_url">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">get_base_url</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.link_utils.LinkUtils.get_base_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the base url (scheme://netloc) from a url.</p>
+<p>Uses the python urllib.parse object to generate the scheme and netloc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>url</strong> (<em>str</em>) – A URL.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The base url generated from the provided url.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">get_base_url</span><span class="p">(</span><span class="s2">&quot;http://python.org:8000/test/link/path&quot;</span><span class="p">)</span>
+<span class="go">&quot;http://python.org:8000&quot;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bitcrawler.link_utils.LinkUtils.get_domain">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">get_domain</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.link_utils.LinkUtils.get_domain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks is two urls share the same domain.</p>
+<p>Generates domains from the urllib.parse objects netloc. The domain is
+extracted from the netloc by stripping the port and subdomain info.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>url</strong> (<em>str</em>) – A URL.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The domain of from the input URL.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">get_domain</span><span class="p">(</span><span class="s2">&quot;http://subdomain.python.org:8000/test/link/path&quot;</span><span class="p">)</span>
+<span class="go">&quot;python.org&quot;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bitcrawler.link_utils.LinkUtils.is_relative">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">is_relative</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">link</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.link_utils.LinkUtils.is_relative" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines if a link is a relative link.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>link</strong> (<em>str</em>) – A link.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the link is a relative link. Otherwise False.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">is_relative</span><span class="p">(</span><span class="s2">&quot;/test/link/path&quot;</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">is_relative</span><span class="p">(</span><span class="s2">&quot;http://python.org/test/link/path&quot;</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bitcrawler.link_utils.LinkUtils.is_same_domain">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">is_same_domain</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.link_utils.LinkUtils.is_same_domain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks is two urls share the same domain.</p>
+<p>Uses <cite>get_domain</cite> to extract a domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url1</strong> (<em>str</em>) – The first URL for comparison.</p></li>
+<li><p><strong>url2</strong> (<em>str</em>) – The second URL for comparison.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the domains match. Otherwise False.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>&gt;&gt;&gt;is_same_domain(“<a class="reference external" href="http://python.org">http://python.org</a>”, “<a class="reference external" href="https://subdomain.python.org:8000">https://subdomain.python.org:8000</a>”)
+True</p>
+<p>&gt;&gt;&gt;is_same_domain(“<a class="reference external" href="http://python.org">http://python.org</a>”, “<a class="reference external" href="https://pandas.com">https://pandas.com</a>”)
+False</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-bitcrawler.parsing">
+<span id="bitcrawler-parsing-module"></span><h2>bitcrawler.parsing module<a class="headerlink" href="#module-bitcrawler.parsing" title="Permalink to this headline">¶</a></h2>
+<p>Utilities for parsing html.</p>
+<p>Extends functionality of BeautifulSoup for added html parsing functionality.</p>
+<dl class="py class">
+<dt id="bitcrawler.parsing.HtmlParser">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bitcrawler.parsing.</span></code><code class="sig-name descname"><span class="pre">HtmlParser</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">markup</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">builder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parse_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_encodings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.parsing.HtmlParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">bs4.BeautifulSoup</span></code></p>
+<p>HtmlParser extends functionality provided by BeautifulSoup.</p>
+<dl class="py method">
+<dt id="bitcrawler.parsing.HtmlParser.get_links">
+<code class="sig-name descname"><span class="pre">get_links</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.parsing.HtmlParser.get_links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds links from anchor tags in the soup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of links discovered within the html.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list(str)</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;http://python.org&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">HtmlParser</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">get_links</span><span class="p">()</span>
+<span class="go">[&quot;http://python.org/search&quot;, &quot;/about&quot;, ..., &quot;http://python.org/learn&quot;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-bitcrawler.robots">
+<span id="bitcrawler-robots-module"></span><h2>bitcrawler.robots module<a class="headerlink" href="#module-bitcrawler.robots" title="Permalink to this headline">¶</a></h2>
+<p>Utilities for fetching and parsing robots.txt files.</p>
+<p>Extends the reppy library (<a class="reference external" href="https://github.com/seomoz/reppy">https://github.com/seomoz/reppy</a>)
+for robots.txt fetching and parsing.</p>
+<dl class="py class">
+<dt id="bitcrawler.robots.ReppyUtils">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bitcrawler.robots.</span></code><code class="sig-name descname"><span class="pre">ReppyUtils</span></code><a class="headerlink" href="#bitcrawler.robots.ReppyUtils" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A set of reppy utilities.</p>
+<dl class="py method">
+<dt id="bitcrawler.robots.ReppyUtils.allowed">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">allowed</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'python-requests'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.robots.ReppyUtils.allowed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines if a URL is crawlable for a given user agent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> (<em>str</em>) – The url to check for crawlability.</p></li>
+<li><p><strong>user_agent</strong> (<em>str</em><em>, </em><em>optional</em>) – The user agent to check for in robots.txt.
+Default ‘python-requests’.</p></li>
+<li><p><strong>requests_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – The keyword arguments to pass into
+the requests.get call to the robots.txt url. Default <cite>None</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the page is allowed to be crawled.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ReppyUtils</span><span class="o">.</span><span class="n">allowed</span><span class="p">(</span><span class="s1">&#39;http://python.org/test&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bitcrawler.robots.ReppyUtils.crawl_delay">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">crawl_delay</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.robots.ReppyUtils.crawl_delay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines the robots crawl delay for a given user agent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> (<em>str</em>) – The url to get a crawl delay for.</p></li>
+<li><p><strong>user_agent</strong> – The user agent to get the crawl delay for.</p></li>
+<li><p><strong>requests_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – The keyword arguments to pass into
+the requests.get call to the robots.txt url. Default <cite>None</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The time to wait between crawling pages (seconds).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ReppyUtils</span><span class="o">.</span><span class="n">crawl_delay</span><span class="p">(</span><span class="s1">&#39;http://python.org/test&#39;</span><span class="p">,</span> <span class="s1">&#39;python-requests&#39;</span><span class="p">)</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bitcrawler.robots.ReppyUtils.fetch_robots">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">fetch_robots</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">robots_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.robots.ReppyUtils.fetch_robots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches the robots URL.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>robots_url</strong> (<em>str</em>) – The robots url to fetch.</p></li>
+<li><p><strong>requests_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – The keyword arguments to pass into
+the requests.get call to the robots.txt url. Default <cite>None</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the reppy object from feting the robots.txt file.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>reppy.Robots</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bitcrawler.robots.ReppyUtils.get_robots_url">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">get_robots_url</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.robots.ReppyUtils.get_robots_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the URL where the robots file should be stored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>url</strong> (<em>str</em>) – The url to derive the robots url from.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The robots.txt url.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ReppyUtils</span><span class="o">.</span><span class="n">get_robots_url</span><span class="p">(</span><span class="s1">&#39;http://python.org/test/path&quot;)</span>
+<span class="go">&#39;http://python.org/robots.txt&#39;_</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="bitcrawler.robots.RobotsCache">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bitcrawler.robots.</span></code><code class="sig-name descname"><span class="pre">RobotsCache</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_policy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ttl_policy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.robots.RobotsCache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">reppy.cache.RobotsCache</span></code></p>
+<p>Extends the reppy RobotsCache to include extra functionality.</p>
+<dl class="py method">
+<dt id="bitcrawler.robots.RobotsCache.crawl_delay">
+<code class="sig-name descname"><span class="pre">crawl_delay</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'python-requests'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.robots.RobotsCache.crawl_delay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a crawl delay for a given url and user_agent.
+Note: Crawl delay is the same for all pages under a robots.txt file for</p>
+<blockquote>
+<div><p>a given user agent.</p>
+</div></blockquote>
+<p>Note: Going to open a PR on reppy to have this built in.
+:param url: The target URL.
+:type url: str
+:param user_agent: The user agent. Default “python-requests”
+:type user_agent: str, optional</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The number of seconds the specified user_agent should wait between calls.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">crawl_delay</span><span class="p">(</span><span class="s2">&quot;http://python.org&quot;</span><span class="p">,</span> <span class="n">user_agent</span><span class="o">=</span><span class="s2">&quot;python-requests&quot;</span><span class="p">)</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-bitcrawler.webpage">
+<span id="bitcrawler-webpage-module"></span><h2>bitcrawler.webpage module<a class="headerlink" href="#module-bitcrawler.webpage" title="Permalink to this headline">¶</a></h2>
+<p>This module provides functionality for fetching a webpage and stores
+relevant ojects from page retrieval.</p>
+<dl class="py class">
+<dt id="bitcrawler.webpage.Webpage">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bitcrawler.webpage.</span></code><code class="sig-name descname"><span class="pre">Webpage</span></code><a class="headerlink" href="#bitcrawler.webpage.Webpage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Webpage provides the ability to fetch a webpage. Stores
+data from the retrieval of the page.</p>
+<dl class="py method">
+<dt id="bitcrawler.webpage.Webpage.fetch">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">fetch</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">requests_kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.webpage.Webpage.fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches the webpage for the URL using the requests library.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> (<em>str</em>) – The target URL.</p></li>
+<li><p><strong>**requests_kwargs</strong> (<em>kwargs</em><em>, </em><em>optional</em>) – Any additional parameters
+to pass onto the reqeusts library.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The response from the web request.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>obj requests.Response</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>Exception</strong> – Can raise a variety of exceptions. See requests library</p></li>
+<li><p><strong>for more details.</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bitcrawler.webpage.Webpage.get_html_links">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">get_html_links</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">html</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.webpage.Webpage.get_html_links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses links from an html document.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> (<em>str</em>) – The target URL.</p></li>
+<li><p><strong>html</strong> (<em>str</em>) – the html document.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list containing all valid urls found in the html.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bitcrawler.webpage.Webpage.get_page">
+<code class="sig-name descname"><span class="pre">get_page</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">respect_robots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reppy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.webpage.Webpage.get_page" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches a webpage for the provided URL.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> (<em>str</em>) – The url for the webpage.</p></li>
+<li><p><strong>user_agent</strong> (<em>str</em>) – The user_agent to use during requests.
+Note: This param overrides any user agent kwargs.</p></li>
+<li><p><strong>request_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – The page retrieval request kwargs.</p></li>
+<li><p><strong>respect_robots</strong> (<em>bool</em>) – If true, robots.txt will be honored.</p></li>
+<li><p><strong>(</strong> (<em>reppy</em>) – obj:robots.RobotParser, optional): A robots parsing object.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The instance of the Webpage class.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>this</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bitcrawler.webpage.Webpage.get_page_links">
+<code class="sig-name descname"><span class="pre">get_page_links</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.webpage.Webpage.get_page_links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts links from a page.</p>
+<p>Only supports documents with a content type of ‘text/html’.
+TODO: Add further support for other doc types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A list of links from the page.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list(str)</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>RuntimeError</strong> – Raises a runtime error if this function is called</p></li>
+<li><p><strong>prior to calling Webpage</strong><strong>(</strong><strong>..</strong><strong>)</strong><strong>get_page.</strong> – </p></li>
+<li><p><strong>The response from get_page is required in this function.</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bitcrawler.webpage.Webpage.is_allowed_by_robots">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">is_allowed_by_robots</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reppy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.webpage.Webpage.is_allowed_by_robots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if a page is crawlable by robots.txt.</p>
+<blockquote>
+<div><p>Leverages the Reppy library for retrieval and parsing of robots.txt.</p>
+</div></blockquote>
+<dl>
+<dt>i</dt><dd><dl>
+<dt>Args:</dt><dd><p>url (str): The target URL.
+user_agent (str): The user agent being used to crawl the page.
+reppy (:obj:robots.RobotParser, optional): A robots parsing object.
+request_kwargs (dict, optional): requests.get kwargs for fetching the</p>
+<blockquote>
+<div><p>robots.txt file.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>bool: True if the page is allowed by robots.txt. Otherwise False.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="bitcrawler.webpage.Webpage.parse_mime_type">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">parse_mime_type</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mime_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.webpage.Webpage.parse_mime_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses a mime type into its content type and parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> (<em>str</em>) – The target URL.</p></li>
+<li><p><strong>**requests_kwargs</strong> (<em>kwargs</em><em>, </em><em>optional</em>) – Any additional parameters
+to pass onto the reqeusts library.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>str: The type of the content.
+str: The content type parameters.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_mime_type</span><span class="p">(</span><span class="s2">&quot;text/html; encoding=utf-8&quot;</span><span class="p">)</span>
+<span class="go">(&quot;text/html&quot;, &quot;encoding=utf-8&quot;,)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="bitcrawler.webpage.WebpageBuilder">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">bitcrawler.webpage.</span></code><code class="sig-name descname"><span class="pre">WebpageBuilder</span></code><a class="headerlink" href="#bitcrawler.webpage.WebpageBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Builds a Webpage object by intilizing the class and calling
+the <cite>get_page</cite> method.</p>
+<dl class="py method">
+<dt id="bitcrawler.webpage.WebpageBuilder.build">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">build</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">respect_robots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reppy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bitcrawler.webpage.WebpageBuilder.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds a Webpage by fetching the provided URL.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>user_agent</strong> (<em>str</em>) – The user_agent to use during requests.
+Note: This param overrides any user agent kwargs.</p></li>
+<li><p><strong>request_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – The page retrieval request kwargs.</p></li>
+<li><p><strong>respect_robots</strong> (<em>bool</em>) – If true, robots.txt will be honored.</p></li>
+<li><p><strong>(</strong> (<em>reppy</em>) – obj:robots.RobotParser, optional): A robots parsing object.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The instance of the Webpage class.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>this</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-bitcrawler">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-bitcrawler" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">BitCrawler</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Austyn Herman.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/bitcrawler.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

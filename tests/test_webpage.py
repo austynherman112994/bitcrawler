@@ -94,7 +94,7 @@ def test_get_html_links__invalid_url(mock_get_links):
         "http://python.org/about",
         "http://python.org/123"
     ]
-    page = webpage.Webpage("http://python.org")
+    page = webpage.Webpage()
     page._fetched = True
     links = page.get_page_links()
     assert links.sort() == expected_results.sort()

@@ -22,6 +22,9 @@ from bs4 import BeautifulSoup
 from bitcrawler.crawler import Crawler
 
 class MyCrawler(Crawler):
+    # Parse is always called py the `crawl` method and is provided
+    # a webpage.Webpage class instance for each URL.
+    # See the webpage.Webpage class for details about the object.
     def parse(self, webpages):
         for page in webpages:
             # If page response is not none, response code is in 200s, and document is html.
@@ -30,7 +33,7 @@ class MyCrawler(Crawler):
                page.response.headers.get('content-type').startswith('text/html'):
             soup = BeautifulSoup(page.response.text, "html.parser")
             print(page.url, "- ", soup.title) 
-
+        return webpages
 
 # Initializes the crawler with the configuration specified by parameters.
 crawler = MyCrawler(cross_site=True, crawl_depth=2, multithreading=True)

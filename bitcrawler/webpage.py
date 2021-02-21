@@ -186,16 +186,7 @@ i
         Returns:
             list(str): A list of links from the page.
 
-        Raises:
-            RuntimeError: Raises a runtime error if this function is called
-            prior to calling `Webpage(...).get_page`.
-            The response from `get_page` is required in this function.
-
         """
-        if not self._fetched:
-            raise RuntimeError(
-                "Function `get_page_links` cannot be called before calling "
-                "`get_page`. `get_page` initializes required components.")
         if self.response:
             if self.response.ok:
                 # Second param will be charset for text/html docs
@@ -206,64 +197,11 @@ i
                 if content_type == 'text/html':
                     self.links = self.get_html_links(self.url, self.response.text)
 
-                ### TODO add support for other content types.
+                # Other doc types.
         if not self.links:
             self.links = []
         return self.links
 
-    def get_page(
-            self,
-            url,
-            user_agent,
-            request_kwargs=None,
-            respect_robots=True,
-            reppy=None):
-        """Fetches a webpage for the provided URL.
-
-        Args:
-            url (str): The url for the webpage.
-            user_agent (str): The user_agent to use during requests.
-                Note: This param overrides any user agent kwargs.
-            request_kwargs (dict, optional): The page retrieval request kwargs.
-            respect_robots (bool): If true, robots.txt will be honored.
-            reppy (:obj:robots.RobotParser, optional): A robots parsing object.
-        Returns:
-            this: The instance of the Webpage class.
-
-        """
-        self._fetched = True
-        self.url = url
-        if not request_kwargs:
-            request_kwargs = {}
-    	# If headers is already a field in request_kwargs, update with user_agent.
-        user_agent_header = {'User-Agent': user_agent}
-        if 'headers' in request_kwargs.keys():
-            # Update the headers dict to contain the user_agent.
-            # If a UA is already specified, `user_agent` param takes precidence.
-            request_kwargs['headers'] = {**request_kwargs['headers'], **user_agent_header}
-        else:
-            request_kwargs['headers'] = user_agent_header
-
-        if respect_robots:
-            self.allowed_by_robots = self.is_allowed_by_robots(
-                self.url, user_agent, reppy=reppy, request_kwargs=request_kwargs)
-
-        # Only False should prevent crawling (None should allow.)
-        if self.allowed_by_robots is False:
-            self.message = f"URL {self.url} is restricted by robots.txt"
-        else:
-            try:
-                self.response = self.fetch(self.url, **request_kwargs)
-            except Exception as err:
-                self.message = (
-                    "An error occurred while attempting to fetch "
-                    f"{self.url}: {err}")
-                logging.error(self.message)
-                self.error = err
-            if self.response and not self.response.ok:
-                self.message = f"URL %s returned a {self.response.status_code} status code."
-
-        return self
 
 
 class WebpageBuilder:
@@ -290,6 +228,60 @@ class WebpageBuilder:
             this: The instance of the Webpage class.
 
         """
-        page = Webpage()
-        page.get_page(url, user_agent, request_kwargs, respect_robots, reppy)
+        page = cls._get_page(url, user_agent, request_kwargs, respect_robots, reppy)
         return page
+
+    @classmethod
+    def _get_page(
+            cls,
+            url,
+            user_agent,
+            request_kwargs=None,
+            respect_robots=True,
+            reppy=None):
+        """Fetches a webpage for the provided URL.
+
+        Args:
+            url (str): The url for the webpage.
+            user_agent (str): The user_agent to use during requests.
+                Note: This param overrides any user agent kwargs.
+            request_kwargs (dict, optional): The page retrieval request kwargs.
+            respect_robots (bool): If true, robots.txt will be honored.
+            reppy (:obj:robots.RobotParser, optional): A robots parsing object.
+        Returns:
+            Webpage: The instance of the Webpage class.
+
+        """
+        webpage = Webpage()
+        webpage.url = url
+        if not request_kwargs:
+            request_kwargs = {}
+    	# If headers is already a field in request_kwargs, update with user_agent.
+        user_agent_header = {'User-Agent': user_agent}
+        if 'headers' in request_kwargs.keys():
+            # Update the headers dict to contain the user_agent.
+            # If a UA is already specified, `user_agent` param takes precidence.
+            request_kwargs['headers'] = {**request_kwargs['headers'], **user_agent_header}
+        else:
+            request_kwargs['headers'] = user_agent_header
+
+        if respect_robots:
+            webpage.allowed_by_robots = webpage.is_allowed_by_robots(
+                webpage.url, user_agent, reppy=reppy, request_kwargs=request_kwargs)
+
+        # Only False should prevent crawling (None should allow.)
+        if webpage.allowed_by_robots is False:
+            webpage.message = f"URL {webpage.url} is restricted by robots.txt"
+        else:
+            try:
+                webpage.response = webpage.fetch(webpage.url, **request_kwargs)
+            except Exception as err:
+                webpage.message = (
+                    "An error occurred while attempting to fetch "
+                    f"{webpage.url}: {err}")
+                logging.error(webpage.message)
+                webpage.error = err
+            if webpage.response and not webpage.response.ok:
+                webpage.message = f"URL %s returned a {webpage.response.status_code} status code."
+
+        return webpage

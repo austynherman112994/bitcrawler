@@ -14,9 +14,6 @@ pip install bitcrawler
 See the documentation at https://bitcrawler.readthedocs.io/en/latest/bitcrawler.html#bitcrawler for more details on usage.
 
 ## Example Crawler
-The below example extends the crawler object and overrides the parse function.
-The parse function is always called at the end of crawling. It is passed all the pages fetched.
-In the below example the pages are parsed using beautifulsoup and the title is printed with the URL.
 
 ### Simple Usage
 
@@ -29,6 +26,10 @@ crawled_pages = crawler.crawl('http://test.com')
 ```
 
 ### Advanced Usage
+
+The below example extends the crawler object and overrides the parse function.
+The parse function is always called at the end of crawling. It is passed all the pages fetched.
+In the below example the pages are parsed using beautifulsoup and the title is printed with the URL.
 
 
 ```py

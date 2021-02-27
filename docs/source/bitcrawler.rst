@@ -22,10 +22,6 @@ The library can be exteded to easily add on additional crawling behavior and fun
 
 **Example Crawler**
 
-The below example extends the crawler object and overrides the parse function.
-The parse function is always called at the end of crawling. It is passed all the pages fetched.
-In the below example the pages are parsed using beautifulsoup and the title is printed with the URL.
-
 *Simple Usage*
 
 .. code-block:: python
@@ -37,6 +33,10 @@ In the below example the pages are parsed using beautifulsoup and the title is p
 
 
 *Advanced Usage*
+
+The below example extends the crawler object and overrides the parse function.
+The parse function is always called at the end of crawling. It is passed all the pages fetched.
+In the below example the pages are parsed using beautifulsoup and the title is printed with the URL.
 
 .. code-block:: python
 

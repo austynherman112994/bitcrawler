@@ -17,6 +17,20 @@ See the documentation at https://bitcrawler.readthedocs.io/en/latest/bitcrawler.
 The below example extends the crawler object and overrides the parse function.
 The parse function is always called at the end of crawling. It is passed all the pages fetched.
 In the below example the pages are parsed using beautifulsoup and the title is printed with the URL.
+
+### Simple Usage
+
+```py
+from bitcrawler.crawler import Crawler
+
+crawler = Crawler()
+crawled_pages = crawler.crawl('http://test.com')
+
+```
+
+### Advanced Usage
+
+
 ```py
 from bs4 import BeautifulSoup
 from bitcrawler.crawler import Crawler

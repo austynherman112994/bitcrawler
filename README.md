@@ -15,6 +15,12 @@ See the documentation at https://bitcrawler.readthedocs.io/en/latest/bitcrawler.
 
 ## Example Crawler
 
+Crawling webpages will begin by fetching the original URL supplied. The crawler will traverse links discoverd on the
+pages until it reaches the specified crawl depth or runs out of links.
+
+A bitcrawler.webpage.Webpage class instance will be returned for each page fetched. To see more details on
+the Webpage class see the documetation on the class (https://bitcrawler.readthedocs.io/en/latest/bitcrawler.html#module-bitcrawler.webpage).
+
 ### Simple Usage
 
 ```py

@@ -17,6 +17,16 @@ log = logging.getLogger('bitcrawler')
 class Webpage:
     """Webpage provides the ability to fetch a webpage. Stores
     data from the retrieval of the page.
+
+    Attributes:
+        url (str): The associated to the webpage.
+        response (`obj` requests.Response): The requests library Response
+            object from fetching the page.
+        links (list(str)): A list of the links found on the page.
+        allowed_by_robots (bool): If true, the page is crawlable by robots.txt.
+        message (str): Message detailing any issues fetching the page.
+        error (`obj` Exception): Any error that was raised during page retrieval.
+
     """
     def __init__(self):
         """ Initializes Webpage.
@@ -30,7 +40,6 @@ class Webpage:
         self.allowed_by_robots = None
         self.message = None
         self.error = None
-        self._fetched = False
 
     @classmethod
     def fetch(cls, url, **requests_kwargs):

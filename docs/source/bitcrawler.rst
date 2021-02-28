@@ -29,6 +29,8 @@ The library can be exteded to easily add on additional crawling behavior and fun
     from bitcrawler.crawler import Crawler
 
     crawler = Crawler()
+    # Returns a list of bitcrawler.webpage.Webpage instances.
+    # See the Webpage class for more details on its members.
     crawled_pages = crawler.crawl('http://test.com')
 
 
@@ -76,6 +78,8 @@ In the below example the pages are parsed using beautifulsoup and the title is p
         reppy_args=tuple()) # Advanced Usage - See docs for details.
  
     # Crawls pages starting from "http://test.com"
+    # Returns a list of bitcrawler.webpage.Webpage instances.
+    # See the Webpage class for more details on its members.
     crawled_pages = crawler.crawl(
         url="http://test.com", # The start URL to crawl from.
         allowed_domains=[], # A list of allowed domains. `cross_site` must be True. Ex. ['python.org',...]

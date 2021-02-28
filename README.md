@@ -21,6 +21,8 @@ See the documentation at https://bitcrawler.readthedocs.io/en/latest/bitcrawler.
 from bitcrawler.crawler import Crawler
 
 crawler = Crawler()
+# Returns a list of bitcrawler.webpage.Webpage objects.
+# See the Webpage class for more details on its members.
 crawled_pages = crawler.crawl('http://test.com')
 
 ```
@@ -69,6 +71,8 @@ crawler = MyCrawler(
     reppy_args=tuple()) # Advanced Usage - See docs for details.
  
 # Crawls pages starting from "http://test.com"
+# Returns a list of bitcrawler.webpage.Webpage objects.
+# See the Webpage class for more details on its members.
 crawled_pages = crawler.crawl(
     url="http://test.com", # The start URL to crawl from.
     allowed_domains=[], # A list of allowed domains. `cross_site` must be True. Ex. ['python.org',...]

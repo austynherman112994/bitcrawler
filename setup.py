@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="bitcrawler", # Replace with your own username
-    version="0.0.4",
+    version="0.1.0",
     author="Austyn Herman",
     author_email="austynherman112994@gmail.com",
     description="Crawling the web made easy.",

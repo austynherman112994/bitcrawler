@@ -137,7 +137,7 @@ class Crawler:
 
 
     def _is_crawlable_domain(
-        self, url, original_domain, allowed_domains, disallowed_domains):
+        self, url, original_domains, allowed_domains, disallowed_domains):
         """Checks if a domain is crawlable.
 
         If the domain is the same as the original url, it is crawlable.
@@ -146,7 +146,7 @@ class Crawler:
 
         Args:
             url (str): The URL to be crawled.
-            original_domain (str): The domain from the original URL.
+            original_domains (list(str)): The domain from the original URL.
             allowed_domains (list(str)): A list of allowed domains.
                 Disabled when `cross_site` is False.
             disallowed_domains (list(str)): A list of disallowed domains.
@@ -157,18 +157,18 @@ class Crawler:
             bool: True if the URL is crawlable. Otherwise False.
 
         Examples:
-            >>> _is_crawlable_domain("http://python.org", "python.org", [], [])
+            >>> _is_crawlable_domain("http://python.org", ["python.org"], [], [])
             True
 
-            >>> _is_crawlable_domain("http://python.org", "yahoo.com", ["python.org"], [])
+            >>> _is_crawlable_domain("http://python.org", ["yahoo.com"], ["python.org"], [])
             True
 
-            >>> _is_crawlable_domain("http://python.org", "yahoo.com", [], ["python.org"])
+            >>> _is_crawlable_domain("http://python.org", ["yahoo.com"], [], ["python.org"])
             False
 
         """
         url_domain = link_utils.LinkUtils.get_domain(url)
-        if url_domain == original_domain:
+        if url_domain in original_domains:
             crawlable = True
         elif self.cross_site:
             if allowed_domains:
@@ -184,12 +184,12 @@ class Crawler:
 
 
     def crawl(
-        self, url, allowed_domains=None,
+        self, urls, allowed_domains=None,
         disallowed_domains=None, page_timeout=10):
         """Crawls webpages by traversing links.
 
         Args:
-            url (str): The URL to be crawled.
+            urls list(str): The URL or list of start URLs to be crawled.
             allowed_domains (list(str)): A list of allowed domains to crawl. Default None
                 Original URL domain takes precidence. `cross_site` must be
                 enabled.
@@ -202,7 +202,9 @@ class Crawler:
             self.parse(webpages): Returns a call to the overidable parse function.
                 Supplies the webpages as input.
         """
-        original_domain = link_utils.LinkUtils.get_domain(url)
+        if isinstance(urls, str):
+            urls = [urls]
+        original_domains = [link_utils.LinkUtils.get_domain(url) for url in urls]
 
         crawled_urls = {}
         if not self.cross_site and (allowed_domains or disallowed_domains):
@@ -265,7 +267,7 @@ class Crawler:
                     valid_links = [
                         link for link in page_links
                         if self._is_crawlable_domain(
-                            link, original_domain,
+                            link, original_domains,
                             allowed_domains,
                             disallowed_domains)]
                     links_to_crawl.extend(valid_links)
@@ -274,5 +276,5 @@ class Crawler:
                 # crawl links discovered on pages that were just crawled.
                 _crawl(links_to_crawl, depth=depth+1)
 
-        _crawl([url])
+        _crawl(urls)
         return self.parse(crawled_urls.values())

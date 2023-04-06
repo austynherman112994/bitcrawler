@@ -11,7 +11,7 @@ pip install bitcrawler
 
 ## Documentation
 
-See the documentation at https://bitcrawler.readthedocs.io/en/latest/bitcrawler.html#bitcrawler for more details on usage.
+See the [documentation](https://bitcrawler.readthedocs.io/en/latest/bitcrawler.html#bitcrawler) for more details on usage.
 
 ## Example Crawler
 
@@ -19,7 +19,7 @@ Crawling webpages will begin by fetching the original URL supplied. The crawler 
 pages until it reaches the specified crawl depth or runs out of links.
 
 A bitcrawler.webpage.Webpage class instance will be returned for each page fetched. To see more details on
-the Webpage class see the documetation on the class (https://bitcrawler.readthedocs.io/en/latest/bitcrawler.html#module-bitcrawler.webpage).
+the Webpage class see the [documentation](https://bitcrawler.readthedocs.io/en/latest/bitcrawler.html#module-bitcrawler.webpage) on the class.
 
 ### Simple Usage
 
